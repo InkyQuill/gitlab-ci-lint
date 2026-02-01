@@ -12,6 +12,7 @@ A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.ym
 
 - ⚡ **Fast local validation** - YAML syntax checking without API calls
 - 🔌 **Optional API validation** - Complete semantic validation with GitLab instance
+- 🔍 **Smart file discovery** - Auto-discover CI files, batch validation, directory scanning
 - 🎨 **Multiple output formats** - Text, JSON, YAML
 - 🔧 **Flexible configuration** - File, environment variables, CLI flags
 - 🎯 **Single binary** - No dependencies, written in Go
@@ -75,7 +76,7 @@ go install github.com/InkyQuill/gitlab-ci-lint/cmd/gitlab-ci-lint@latest
 ## Usage
 
 ```bash
-gitlab-ci-lint [flags] <file>
+gitlab-ci-lint [flags] [file]
 
 Available Commands:
   setup       Interactive configuration wizard
@@ -91,11 +92,25 @@ Flags:
   -o, --output string       Output format: text|json|yaml (default: text)
   -v, --verbose             Verbose output
       --color string        Color output: auto|always|never
+  -f, --file strings        Path(s) to CI file(s). Can be specified multiple times.
+  -d, --directory strings   Directory path(s) to recursively search for CI files.
 ```
 
 ## Examples
 
 ```bash
+# Auto-discovery (searches current and parent directories)
+gitlab-ci-lint
+
+# Validate multiple files
+gitlab-ci-lint -f .gitlab-ci.yml -f ci/frontend.yml
+
+# Recursively validate all CI files in a directory
+gitlab-ci-lint -d ./monorepo
+
+# Combined: specific files and directory scanning
+gitlab-ci-lint -f .gitlab-ci.yml -d ./services
+
 # Quick syntax check during development
 gitlab-ci-lint --skip-api .gitlab-ci.yml
 
@@ -107,6 +122,9 @@ gitlab-ci-lint --output json .gitlab-ci.yml | jq .valid
 
 # Project-specific validation with job references
 gitlab-ci-lint --project mygroup/myproject .gitlab-ci.yml
+
+# Validate from stdin
+cat .gitlab-ci.yml | gitlab-ci-lint -
 ```
 
 ## Exit Codes

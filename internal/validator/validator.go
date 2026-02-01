@@ -22,6 +22,13 @@ type Warning struct {
 	Line    int    `yaml:"line,omitempty" json:"line,omitempty"`
 }
 
+// FileResult represents validation results for a single file
+type FileResult struct {
+	FilePath string   `yaml:"file_path" json:"file_path"`
+	Valid    bool     `yaml:"valid" json:"valid"`
+	Stages   []Result `yaml:"stages" json:"stages"`
+}
+
 // Validator defines the interface for validation operations
 type Validator interface {
 	Validate(content []byte) Result

@@ -17,17 +17,19 @@ type Loader struct {
 
 // ConfigFlags represents CLI flag values
 type ConfigFlags struct {
-	ConfigFile string
-	Token      string
-	Netrc      bool
-	Instance   string
-	Timeout    string
-	Project    string
-	SkipAPI    bool
-	Strict     bool
-	Output     string
-	Verbose    bool
-	Color      string
+	ConfigFile  string
+	Token       string
+	Netrc       bool
+	Instance    string
+	Timeout     string
+	Project     string
+	SkipAPI     bool
+	Strict      bool
+	Output      string
+	Verbose     bool
+	Color       string
+	Files       []string // From -f flag
+	Directories []string // From -d flag
 }
 
 // NewLoader creates a new configuration loader
@@ -242,6 +244,17 @@ func (l *Loader) mergeConfigs(base, over Config) Config {
 	}
 	if over.Output.Color != "" {
 		result.Output.Color = over.Output.Color
+	}
+
+	// Merge Files config
+	if over.Files.SearchParent {
+		result.Files.SearchParent = true
+	}
+	if over.Files.MaxDepth > 0 {
+		result.Files.MaxDepth = over.Files.MaxDepth
+	}
+	if len(over.Files.IgnorePatterns) > 0 {
+		result.Files.IgnorePatterns = over.Files.IgnorePatterns
 	}
 
 	return result

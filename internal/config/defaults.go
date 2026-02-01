@@ -23,5 +23,10 @@ func GetDefaults() Config {
 			Verbose: false,
 			Color:   "auto",
 		},
+		Files: FilesConfig{
+			SearchParent:   true,
+			MaxDepth:       10,
+			IgnorePatterns: nil, // Will use discoverer defaults
+		},
 	}
 }
