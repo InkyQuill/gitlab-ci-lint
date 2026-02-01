@@ -14,6 +14,7 @@ import (
 type Loader struct {
 	defaults Config
 	flags    *ConfigFlags
+	warnings []string
 }
 
 // ConfigFlags represents CLI flag values
@@ -38,6 +39,7 @@ func NewLoader(flags *ConfigFlags) *Loader {
 	return &Loader{
 		defaults: GetDefaults(),
 		flags:    flags,
+		warnings: make([]string, 0),
 	}
 }
 
@@ -142,7 +144,10 @@ func (l *Loader) loadEnvVars() Config {
 
 	if timeout := os.Getenv("GCL_TIMEOUT"); timeout != "" {
 		parsed, err := l.parseTimeout(timeout)
-		if err == nil && parsed != nil {
+		if err != nil {
+			l.warnings = append(l.warnings,
+				fmt.Sprintf("invalid GCL_TIMEOUT value '%s': %v (using default)", timeout, err))
+		} else if parsed != nil {
 			cfg.GitLab.Timeout = parsed
 		}
 	}
@@ -300,4 +305,9 @@ func (l *Loader) validate(cfg *Config) error {
 	}
 
 	return nil
+}
+
+// GetWarnings returns any warnings collected during configuration loading
+func (l *Loader) GetWarnings() []string {
+	return l.warnings
 }

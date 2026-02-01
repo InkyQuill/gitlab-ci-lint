@@ -161,6 +161,13 @@ func runLint(cmd *cobra.Command, args []string) {
 	// Create formatter
 	formatter := output.NewFormatter(cfg.Output.Color, cfg.Output.Verbose)
 
+	// Display configuration warnings if verbose
+	if len(loader.GetWarnings()) > 0 && cfg.Output.Verbose {
+		for _, warn := range loader.GetWarnings() {
+			formatter.FormatMessage(os.Stderr, "warning", warn)
+		}
+	}
+
 	// Prepare GitLab client ONCE (before file processing)
 	gitlabClient, err := prepareGitLabClient(cmd.Context(), cfg, formatter)
 	if err != nil {
@@ -227,6 +234,13 @@ func handleStdinInput(cmd *cobra.Command) {
 
 	// Create formatter
 	formatter := output.NewFormatter(cfg.Output.Color, cfg.Output.Verbose)
+
+	// Display configuration warnings if verbose
+	if len(loader.GetWarnings()) > 0 && cfg.Output.Verbose {
+		for _, warn := range loader.GetWarnings() {
+			formatter.FormatMessage(os.Stderr, "warning", warn)
+		}
+	}
 
 	// Read from stdin
 	content, err := io.ReadAll(os.Stdin)
@@ -328,10 +342,10 @@ func discoverFiles(discoverer *discover.Discoverer, cfg *config.Config, args []s
 	}
 
 	// Print any discovery errors in verbose mode
-	if cfg.Output.Verbose {
+	if cfg.Output.Verbose && len(allErrors) > 0 {
+		errorFormatter := output.NewFormatter(cfg.Output.Color, true)
 		for _, err := range allErrors {
-			formatter := output.NewFormatter(cfg.Output.Color, true)
-			formatter.FormatMessage(os.Stderr, "warning", err.Error())
+			errorFormatter.FormatMessage(os.Stderr, "warning", err.Error())
 		}
 	}
 
@@ -665,6 +679,9 @@ func testConfiguration(cfg *config.Config) error {
 
 // safeTruncate returns the last n characters of a string, or the whole string if shorter
 func safeTruncate(s string, n int) string {
+	if n <= 0 {
+		return ""
+	}
 	if len(s) <= n {
 		return s
 	}

@@ -69,8 +69,13 @@ func (f *Formatter) formatText(w io.Writer, results []validator.Result, filename
 
 // formatTextResult formats a single validation result as text
 func (f *Formatter) formatTextResult(w io.Writer, result *validator.Result) {
-	// Print stage
-	stageName := strings.ToUpper(result.Stage[:1]) + result.Stage[1:]
+	// Print stage (protect against empty stage)
+	var stageName string
+	if result.Stage == "" {
+		stageName = "Unknown"
+	} else {
+		stageName = strings.ToUpper(result.Stage[:1]) + result.Stage[1:]
+	}
 	_, _ = fmt.Fprintf(w, "  %s: ", f.colorizer.Blue(stageName))
 
 	if result.Valid {
@@ -182,6 +187,19 @@ func (f *Formatter) allValid(results []validator.Result) bool {
 	return true
 }
 
+// countValidationResults counts total, valid, and invalid results
+func (f *Formatter) countValidationResults(results []validator.FileResult) (total, valid, invalid int) {
+	total = len(results)
+	for _, result := range results {
+		if result.Valid {
+			valid++
+		} else {
+			invalid++
+		}
+	}
+	return
+}
+
 // FormatSummary formats and writes a summary of batch validation results
 func (f *Formatter) FormatSummary(w io.Writer, format string, results []validator.FileResult) {
 	switch format {
@@ -196,17 +214,7 @@ func (f *Formatter) FormatSummary(w io.Writer, format string, results []validato
 
 // formatSummaryText formats summary as human-readable text
 func (f *Formatter) formatSummaryText(w io.Writer, results []validator.FileResult) {
-	total := len(results)
-	valid := 0
-	invalid := 0
-
-	for _, result := range results {
-		if result.Valid {
-			valid++
-		} else {
-			invalid++
-		}
-	}
+	total, valid, invalid := f.countValidationResults(results)
 
 	_, _ = fmt.Fprintf(w, "\n  %s\n\n", f.colorizer.Blue("Summary"))
 	_, _ = fmt.Fprintf(w, "  Total files: %d\n", total)
@@ -216,17 +224,7 @@ func (f *Formatter) formatSummaryText(w io.Writer, results []validator.FileResul
 
 // formatSummaryJSON formats summary as JSON
 func (f *Formatter) formatSummaryJSON(w io.Writer, results []validator.FileResult) {
-	total := len(results)
-	valid := 0
-	invalid := 0
-
-	for _, result := range results {
-		if result.Valid {
-			valid++
-		} else {
-			invalid++
-		}
-	}
+	total, valid, invalid := f.countValidationResults(results)
 
 	output := map[string]interface{}{
 		"summary": map[string]int{
@@ -244,17 +242,7 @@ func (f *Formatter) formatSummaryJSON(w io.Writer, results []validator.FileResul
 
 // formatSummaryYAML formats summary as YAML
 func (f *Formatter) formatSummaryYAML(w io.Writer, results []validator.FileResult) {
-	total := len(results)
-	valid := 0
-	invalid := 0
-
-	for _, result := range results {
-		if result.Valid {
-			valid++
-		} else {
-			invalid++
-		}
-	}
+	total, valid, invalid := f.countValidationResults(results)
 
 	output := map[string]interface{}{
 		"summary": map[string]int{
