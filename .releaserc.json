@@ -13,12 +13,7 @@
         "failComment": false,
         "assets": [
           {
-            "path": "build/gitlab-ci-lint-*",
-            "label": "$npm package"
-          },
-          {
-            "path": "build/gitlab-ci-lint-setup-*",
-            "label": "Setup binary"
+            "path": "build/gitlab-ci-lint-*"
           }
         ]
       }
