@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.0...v0.3.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* correct release workflow to inject proper version into binaries ([b2b05c2](https://github.com/InkyQuill/gitlab-ci-lint/commit/b2b05c23cbc3a33c867a25136aea8254f5951d64))
+
 # [0.3.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.2.1...v0.3.0) (2026-02-01)
 
 
