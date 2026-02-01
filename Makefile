@@ -126,13 +126,35 @@ clean:
 run: build
 	@$(BUILD_DIR)/$(BINARY_NAME) $(ARGS)
 
+# Build release snapshot using goreleaser
+.PHONY: release-snapshot
+release-snapshot:
+	@echo "Building release snapshot..."
+	@if command -v goreleaser >/dev/null 2>&1; then \
+		goreleaser build --snapshot --clean; \
+	else \
+		echo "goreleaser not installed. Run: go install github.com/goreleaser/goreleaser/v2@latest"; \
+		exit 1; \
+	fi
+
+# Test release configuration using goreleaser
+.PHONY: release-test
+release-test:
+	@echo "Testing release configuration..."
+	@if command -v goreleaser >/dev/null 2>&1; then \
+		goreleaser check; \
+	else \
+		echo "goreleaser not installed. Run: go install github.com/goreleaser/goreleaser/v2@latest"; \
+		exit 1; \
+	fi
+
 # Show help
 .PHONY: help
 help:
 	@echo "Available targets:"
 	@echo "  all           - Build for current platform (default)"
 	@echo "  build         - Build for current platform"
-	@echo "  build-all     - Build for all platforms"
+	@echo "  build-all     - Build for all platforms (legacy, use goreleaser)"
 	@echo "  test          - Run all tests"
 	@echo "  test-unit     - Run unit tests only"
 	@echo "  test-integration - Run integration tests only"
@@ -144,6 +166,8 @@ help:
 	@echo "  install       - Install to GOPATH/bin"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  run           - Build and run (use ARGS='--help' for options)"
+	@echo "  release-snapshot - Build release binaries locally using goreleaser"
+	@echo "  release-test  - Test goreleaser configuration without publishing"
 	@echo "  help          - Show this help message"
 	@echo ""
 	@echo "Variables:"

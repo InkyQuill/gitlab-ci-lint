@@ -433,6 +433,55 @@ output:
   color: "auto"
 ```
 
+## Release Process
+
+Releases are automated using [semantic-release](https://github.com/semantic-release/semantic-release) and [goreleaser](https://github.com/goreleaser/goreleaser):
+
+1. **Create a commit** following [conventional commits](https://www.conventionalcommits.org/):
+   - `feat:` for new features (minor version bump)
+   - `fix:` for bug fixes (patch version bump)
+   - `feat!:` or `BREAKING CHANGE:` for breaking changes (major version bump)
+
+2. **Push to main**:
+   ```bash
+   git push origin feature-branch
+   # After PR merge to main
+   ```
+
+3. **Automatic release**:
+   - semantic-release analyzes commits
+   - Creates git tag (e.g., v1.2.3)
+   - goreleaser builds binaries for all platforms
+   - Artifacts uploaded to GitHub Releases
+
+### Manual Release (Optional)
+
+To create a release manually:
+
+```bash
+# Tag and push
+git tag v1.2.3
+git push origin v1.2.3
+
+# Or use goreleaser directly (local testing)
+make release-snapshot
+```
+
+### Building Release Locally
+
+To test the release process locally:
+
+```bash
+# Install goreleaser
+go install github.com/goreleaser/goreleaser/v2@latest
+
+# Build snapshot (no publish)
+make release-snapshot
+
+# Test configuration (no publish, skip dist)
+make release-test
+```
+
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
