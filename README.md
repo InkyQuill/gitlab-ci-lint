@@ -291,12 +291,14 @@ For API validation, you need a GitLab personal access token:
 
 ## Documentation
 
-- 📚 [Quick Start Guide](docs/guides/quick-start.md) - Get started in minutes
-- 🔧 [Configuration Reference](CONFIG.md) - Detailed configuration options
-- 🏗️ [Architecture Overview](docs/architecture/overview.md) - System design
-- 📖 [Examples](docs/examples/) - Usage examples
-- 🐛 [Troubleshooting](docs/guides/troubleshooting.md) - Common issues and solutions
-- 💻 [API Reference](docs/api/reference.md) - Developer documentation
+- 📚 [Wiki](https://github.com/InkyQuill/gitlab-ci-lint/wiki) - Full documentation
+- 🚀 [Quick Start](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Quick-Start) - Get started in minutes
+- 🔧 [Configuration Guide](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Configuration-Guide) - Detailed configuration options
+- 🏗️ [Architecture Overview](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Architecture-Overview) - System design
+- 📖 [Basic Usage](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Basic-Usage) - Usage examples
+- 🐛 [Troubleshooting](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Troubleshooting) - Common issues and solutions
+- 🔌 [CI/CD Integration](https://github.com/InkyQuill/gitlab-ci-lint/wiki/CI-CD-Integration) - Integration examples
+- 💻 [API Reference](https://github.com/InkyQuill/gitlab-ci-lint/wiki/API-Reference) - Developer documentation
 - 🤝 [Contributing](CONTRIBUTING.md) - Contribution guidelines
 
 ## Usage
