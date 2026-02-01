@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.4.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.2...v0.4.0) (2026-02-01)
+
+
+### Features
+
+* improve version package documentation ([8907457](https://github.com/InkyQuill/gitlab-ci-lint/commit/8907457aee05557a00cbf5ce9547aa101eb03ebe))
+
 ## [0.3.2](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.1...v0.3.2) (2026-02-01)
 
 
