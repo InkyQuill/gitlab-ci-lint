@@ -110,7 +110,20 @@ func (d *Discoverer) FindFromDirectory(startDir string) (*FileDiscovery, error) 
 	return nil, fmt.Errorf("no CI configuration file found in %s or parent directories (searched %d levels)", startDir, d.maxDepth)
 }
 
-// FindInDirectoryTree recursively searches a directory tree for all CI files
+// FindInDirectoryTree recursively searches a directory tree for all CI files.
+//
+// Depth Limiting:
+//   - Respects the maxDepth setting set via SetMaxDepth() (default: 10 levels)
+//   - Depth is calculated relative to the root directory provided
+//   - For example, with maxDepth=2 and root="/home/user/project":
+//     * /home/user/project/.gitlab-ci.yml (depth 0) ✓
+//     * /home/user/project/subdir/.gitlab-ci.yml (depth 1) ✓
+//     * /home/user/project/subdir/nested/.gitlab-ci.yml (depth 2) ✓
+//     * /home/user/project/subdir/nested/deep/.gitlab-ci.yml (depth 3) ✗
+//
+// Ignore Patterns:
+//   - Respects ignore patterns set via SetIgnorePatterns()
+//   - Default ignores: .git, node_modules, vendor, build, dist, *.tar.gz
 func (d *Discoverer) FindInDirectoryTree(root string) (*FileDiscovery, error) {
 	result := &FileDiscovery{
 		Files:  make([]string, 0),

@@ -14,6 +14,7 @@ import (
 type Formatter struct {
 	colorizer *Colorizer
 	verbose   bool
+	debug     *DebugLogger
 }
 
 // NewFormatter creates a new output formatter
@@ -21,7 +22,31 @@ func NewFormatter(colorSetting string, verbose bool) *Formatter {
 	return &Formatter{
 		colorizer: NewColorizer(colorSetting),
 		verbose:   verbose,
+		debug:     nil, // Debug logger initialized separately if needed
 	}
+}
+
+// NewFormatterWithDebug creates a new output formatter with debug logging enabled
+func NewFormatterWithDebug(colorSetting string, verbose bool, debugWriter io.Writer) *Formatter {
+	return &Formatter{
+		colorizer: NewColorizer(colorSetting),
+		verbose:   verbose,
+		debug:     NewDebugLogger(colorSetting, debugWriter),
+	}
+}
+
+// SetDebug enables or disables debug logging
+func (f *Formatter) SetDebug(enabled bool, writer io.Writer) {
+	if enabled {
+		f.debug = NewDebugLogger(f.colorizer.GetColorSetting(), writer)
+	} else {
+		f.debug = nil
+	}
+}
+
+// GetDebugLogger returns the debug logger (may be nil if debug disabled)
+func (f *Formatter) GetDebugLogger() *DebugLogger {
+	return f.debug
 }
 
 // FormatResult formats and writes validation results to the output

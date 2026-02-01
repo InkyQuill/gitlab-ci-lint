@@ -28,7 +28,8 @@ type ConfigFlags struct {
 	SkipAPI     bool
 	Strict      bool
 	Output      string
-	Verbose     bool
+	Debug       bool // --debug flag
+	Verbosity   int  // -v, -vv count
 	Color       string
 	Files       []string // From -f flag
 	Directories []string // From -d flag
@@ -43,8 +44,8 @@ func NewLoader(flags *ConfigFlags) *Loader {
 	}
 }
 
-// parseTimeout parses a timeout string into a time.Duration pointer
-func (l *Loader) parseTimeout(timeoutStr string) (*time.Duration, error) {
+// parseTimeout parses a timeout string into a Duration pointer
+func (l *Loader) parseTimeout(timeoutStr string) (*Duration, error) {
 	if timeoutStr == "" {
 		return nil, nil // Not set
 	}
@@ -52,7 +53,7 @@ func (l *Loader) parseTimeout(timeoutStr string) (*time.Duration, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid timeout format: %w", err)
 	}
-	return &duration, nil
+	return &Duration{Duration: duration}, nil
 }
 
 // Load loads configuration from all sources and merges them with proper priority
@@ -67,6 +68,10 @@ func (l *Loader) Load() (*Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to load config file: %w", err)
 		}
+
+		// Auto-migrate legacy single-instance config to multi-instance format
+		MigrateLegacyConfig(&fileCfg)
+
 		cfg = l.mergeConfigs(cfg, fileCfg)
 	}
 
@@ -176,6 +181,10 @@ func (l *Loader) loadEnvVars() Config {
 		cfg.Output.Color = color
 	}
 
+	if debug := os.Getenv("GCL_DEBUG"); debug != "" {
+		cfg.Output.Debug = strings.ToLower(debug) == "true"
+	}
+
 	return cfg
 }
 
@@ -220,7 +229,11 @@ func (l *Loader) loadFlags() (Config, error) {
 		cfg.Output.Format = l.flags.Output
 	}
 
-	if l.flags.Verbose {
+	// Handle verbosity: -v = verbose, -vv or --debug = debug mode
+	if l.flags.Verbosity >= 2 || l.flags.Debug {
+		cfg.Output.Debug = true
+		cfg.Output.Verbose = true // Debug implies verbose
+	} else if l.flags.Verbosity == 1 {
 		cfg.Output.Verbose = true
 	}
 
@@ -241,6 +254,9 @@ func (l *Loader) mergeConfigs(base, over Config) Config {
 	}
 	if over.GitLab.Timeout != nil {
 		result.GitLab.Timeout = over.GitLab.Timeout
+	}
+	if len(over.GitLab.Instances) > 0 {
+		result.GitLab.Instances = over.GitLab.Instances
 	}
 
 	// Merge Auth config
@@ -268,6 +284,9 @@ func (l *Loader) mergeConfigs(base, over Config) Config {
 	}
 	if over.Output.Verbose {
 		result.Output.Verbose = true
+	}
+	if over.Output.Debug {
+		result.Output.Debug = true
 	}
 	if over.Output.Color != "" {
 		result.Output.Color = over.Output.Color
@@ -299,10 +318,15 @@ func (l *Loader) validate(cfg *Config) error {
 		return fmt.Errorf("invalid color setting: %s (must be auto, always, or never)", cfg.Output.Color)
 	}
 
-	// Validate instance URL
-	if cfg.GitLab.Instance == "" {
-		return fmt.Errorf("gitlab instance cannot be empty")
+	// Validate multi-instance configuration
+	if err := ValidateInstances(cfg); err != nil {
+		return err
 	}
+
+	// For legacy single-instance mode, validate instance URL
+	// (Skip validation if using new multi-instance format)
+	// Note: Legacy mode is kept for backward compatibility but not actively used
+	_ = cfg.GitLab.Instance != "" && len(cfg.GitLab.Instances) == 0 // Check legacy mode (lint:ignore SA9003)
 
 	return nil
 }

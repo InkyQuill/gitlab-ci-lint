@@ -263,7 +263,7 @@ func TestClient_Lint_Success(t *testing.T) {
 	client := NewClient(server.URL, "test-token", 10*time.Second)
 	content := []byte(`image: alpine`)
 
-	resp, err := client.Lint(context.Background(), content, "")
+	resp, err := client.Lint(context.Background(), content, "", nil)
 
 	if err != nil {
 		t.Fatalf("Failed to lint: %v", err)
@@ -295,7 +295,7 @@ func TestClient_Lint_WithErrors(t *testing.T) {
 	client := NewClient(server.URL, "test-token", 10*time.Second)
 	content := []byte(`invalid: config`)
 
-	resp, err := client.Lint(context.Background(), content, "")
+	resp, err := client.Lint(context.Background(), content, "", nil)
 
 	if err != nil {
 		t.Fatalf("Failed to lint: %v", err)
@@ -325,7 +325,7 @@ func TestClient_Lint_HTTPError(t *testing.T) {
 	client := NewClient(server.URL, "test-token", 10*time.Second)
 	content := []byte(`image: alpine`)
 
-	_, err := client.Lint(context.Background(), content, "")
+	_, err := client.Lint(context.Background(), content, "", nil)
 
 	if err == nil {
 		t.Error("Expected error for non-200 status")
@@ -337,15 +337,17 @@ func TestClient_Lint_HTTPError(t *testing.T) {
 }
 
 func TestExtractTokenFromNetrc_NotImplemented(t *testing.T) {
-	_, err := ExtractTokenFromNetrc("https://gitlab.com")
+	// Test that netrc returns empty when file doesn't exist (no error expected)
+	token, err := ExtractTokenFromNetrc("https://gitlab.com")
 
-	if err == nil {
-		t.Error("Expected error for unimplemented netrc support")
+	// Should not error when .netrc doesn't exist
+	if err != nil {
+		t.Errorf("Expected no error when .netrc doesn't exist, got: %v", err)
 	}
 
-	expectedMsg := "not yet implemented"
-	if !strings.Contains(err.Error(), expectedMsg) {
-		t.Errorf("Expected error to contain '%s', got: %v", expectedMsg, err)
+	// Should return empty token
+	if token != "" {
+		t.Errorf("Expected empty token, got: %s", token)
 	}
 }
 
@@ -390,7 +392,7 @@ func TestClient_Lint_WithProject(t *testing.T) {
 	client := NewClient(server.URL, "test-token", 10*time.Second)
 	content := []byte(`image: alpine`)
 
-	resp, err := client.Lint(context.Background(), content, "123")
+	resp, err := client.Lint(context.Background(), content, "123", nil)
 
 	if err != nil {
 		t.Fatalf("Failed to lint with project: %v", err)

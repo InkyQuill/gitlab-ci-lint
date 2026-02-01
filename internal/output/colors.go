@@ -16,7 +16,8 @@ const (
 
 // Colorizer handles color output
 type Colorizer struct {
-	enabled bool
+	enabled      bool
+	colorSetting string
 }
 
 // NewColorizer creates a new colorizer based on the color setting
@@ -36,7 +37,10 @@ func NewColorizer(colorSetting string) *Colorizer {
 		enabled = false
 	}
 
-	return &Colorizer{enabled: enabled}
+	return &Colorizer{
+		enabled:      enabled,
+		colorSetting: colorSetting,
+	}
 }
 
 // Color wraps text with ANSI color codes if enabled
@@ -75,4 +79,9 @@ func (c *Colorizer) Gray(text string) string {
 // IsEnabled returns whether coloring is enabled
 func (c *Colorizer) IsEnabled() bool {
 	return c.enabled
+}
+
+// GetColorSetting returns the color setting string
+func (c *Colorizer) GetColorSetting() string {
+	return c.colorSetting
 }
