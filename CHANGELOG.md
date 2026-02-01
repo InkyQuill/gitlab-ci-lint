@@ -1,5 +1,78 @@
 # Changelog
 
+# [1.0.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.4.1...v1.0.0) (2026-02-01)
+
+
+### Features
+
+* implement multi-instance support with auto-detection ([cac4eef](https://github.com/InkyQuill/gitlab-ci-lint/commit/cac4eef5d5161da67b8e26ef1d5ca6049ad78d5e))
+
+
+### BREAKING CHANGES
+
+* Remove default instance concept
+
+This major update implements multi-instance GitLab support with automatic
+instance detection from .git/config, removing the need for default instances.
+
+## Multi-Instance Support
+- Configure multiple GitLab instances with tokens
+- Automatic instance detection from .git/config origin URL
+- Per-file routing to correct GitLab instance
+- Support for HTTPS, HTTP, SSH URL formats
+- Graceful handling of files outside git repositories
+- Submodule and worktree detection
+
+## Default Instance Removal
+- Removed GitLabConfig.Default field
+- Removed InstanceConfig.Default field
+- Removed GetDefaultClient() and GetDefaultInstance() methods
+- Removed fallback logic for files without .git/config
+- Files outside git repos skip API validation (with debug message)
+- Stdin input skips API validation (with clear warning)
+
+## Testing
+- Add 18 tests for ClientRegistry (registry_test.go)
+- Add 22 tests for config migration (migrate_test.go)
+- Add 30 tests for instance detection (detect_enhanced_test.go)
+- Total: 70+ new unit tests achieving 70%+ coverage
+
+## Code Quality
+- Fix all golangci-lint issues (reduced from 18 to 0)
+- Add .golangci.yml configuration
+- Proper error handling for all file operations
+- Add nolint comments for intentional code patterns
+
+## Documentation
+- Create comprehensive ROADMAP.md with:
+  - v1.0 and v2.0 feature checklists
+  - 15 planned integration tests (implementation postponed)
+  - v2.1-v3.0 roadmap
+  - Known limitations and workarounds
+  - Migration guide from v1.0 to v2.0
+  - Testing roadmap with coverage goals
+
+## Modified Files
+- cmd/gitlab-ci-lint/main.go: Major refactor, remove default fallback
+- internal/config/config.go: Remove Default fields
+- internal/config/migrate.go: Remove GetDefaultInstance()
+- internal/gitlab/registry.go: Remove GetDefaultClient()
+- internal/gitlab/detect.go: Add DetectInstanceForFile()
+- internal/gitlab/client.go: Improve error handling
+
+## New Files
+- internal/gitlab/registry.go: Multi-instance client registry
+- internal/gitlab/registry_test.go: 18 tests
+- internal/config/migrate.go: Config migration logic
+- internal/config/migrate_test.go: 22 tests
+- internal/gitlab/detect_enhanced_test.go: 30 tests
+- internal/config/duration.go: Duration type for YAML
+- internal/output/debug.go: Debug logging
+- .golangci.yml: Linter configuration
+- ROADMAP.md: Project roadmap
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+
 ## [0.4.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.4.0...v0.4.1) (2026-02-01)
 
 
