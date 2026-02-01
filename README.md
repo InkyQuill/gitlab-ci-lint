@@ -24,15 +24,24 @@ A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.ym
 ### 1. Install
 
 ```bash
-# macOS / Linux (tarball)
-VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
+# Option 1: Quick install (Linux/macOS)
+curl -sSL https://github.com/InkyQuill/gitlab-ci-lint/raw/main/install.sh | bash
+
+# Option 2: Manual install
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | grep -E '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
 
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | tar xz
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | \
+    tar xz -O gitlab-ci-lint > gitlab-ci-lint
 chmod +x gitlab-ci-lint
-sudo mv gitlab-ci-lint /usr/local/bin/
+mkdir -p ~/.local/bin
+mv gitlab-ci-lint ~/.local/bin/
+
+# Add ~/.local/bin to PATH if needed
+[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+export PATH=$HOME/.local/bin:$PATH
 ```
 
 ### 2. Configure
@@ -67,53 +76,49 @@ gitlab-ci-lint
 
 ## Installation
 
-### Quick Install (Latest Release)
+### Quick Install (Recommended)
 
-Releases provide **tarballs** (`.tar.gz`) for Linux and macOS, and **zip** for Windows. Each archive contains the binary, LICENSE, and README.
-
-#### macOS / Linux (tarball)
+Use our install script for automatic setup:
 
 ```bash
-# Get latest version and detect platform
-VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
+curl -sSL https://github.com/InkyQuill/gitlab-ci-lint/raw/main/install.sh | bash
+```
+
+The script will:
+- Download the latest release for your platform
+- Extract only the binary (no extra files left behind)
+- Install to `~/.local/bin` (XDG compliant, no sudo required)
+- Add to PATH if needed
+
+### Manual Install
+
+#### Linux / macOS
+
+```bash
+# Detect platform and download latest version
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | grep -E '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
 
-# Download tarball and extract
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | tar xz
+# Download and extract ONLY the binary (tar xz -O extracts to stdout)
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | \
+    tar xz -O gitlab-ci-lint > gitlab-ci-lint
+
+# Make executable and install
 chmod +x gitlab-ci-lint
 mkdir -p ~/.local/bin
 mv gitlab-ci-lint ~/.local/bin/
 
-# Add ~/.local/bin to PATH if needed
+# Add to PATH if needed
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
 export PATH=$HOME/.local/bin:$PATH
 
+# Verify
 gitlab-ci-lint version
 ```
 
-#### Linux (AMD64)
-
-```bash
-VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_linux_amd64.tar.gz" | tar xz
-chmod +x gitlab-ci-lint
-sudo mv gitlab-ci-lint /usr/local/bin/
-gitlab-ci-lint version
-```
-
-#### macOS (Apple Silicon)
-
-```bash
-VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_darwin_arm64.tar.gz" | tar xz
-chmod +x gitlab-ci-lint
-sudo mv gitlab-ci-lint /usr/local/bin/
-gitlab-ci-lint version
-```
-
-#### Windows (PowerShell, zip)
+#### Windows (PowerShell)
 
 ```powershell
 # Get latest version
