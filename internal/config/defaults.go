@@ -4,11 +4,14 @@ import "time"
 
 // GetDefaults returns the default configuration values
 func GetDefaults() Config {
-	defaultTimeout := 30 * time.Second
+	defaultTimeout := &Duration{Duration: 30 * time.Second}
 	return Config{
 		GitLab: GitLabConfig{
+			// Legacy single-instance defaults (for backward compatibility)
 			Instance: "https://gitlab.com",
-			Timeout:  &defaultTimeout,
+			Timeout:  defaultTimeout,
+			// New multi-instance defaults (empty by default)
+			Instances: nil, // No instances configured by default
 		},
 		Auth: AuthConfig{
 			Token: "",
@@ -22,6 +25,7 @@ func GetDefaults() Config {
 		Output: OutputConfig{
 			Format:  "text",
 			Verbose: false,
+			Debug:   false,
 			Color:   "auto",
 		},
 		Files: FilesConfig{

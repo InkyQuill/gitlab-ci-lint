@@ -24,25 +24,13 @@ A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.ym
 ### 1. Install
 
 ```bash
-# macOS / Linux (one-line install)
-# Detect OS and architecture
+# macOS / Linux (tarball)
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
+case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
 
-# Map architecture to release naming
-case "$ARCH" in
-  x86_64) ARCH="amd64" ;;
-  aarch64|arm64) ARCH="arm64" ;;
-  i386|i686) ARCH="386" ;;
-esac
-
-# Download latest binary
-BINARY="gitlab-ci-lint-${OS}-${ARCH}"
-if [ "$OS" = "windows" ]; then
-  BINARY="${BINARY}.exe"
-fi
-
-curl -L -o gitlab-ci-lint "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/${BINARY}"
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | tar xz
 chmod +x gitlab-ci-lint
 sudo mv gitlab-ci-lint /usr/local/bin/
 ```
@@ -81,92 +69,70 @@ gitlab-ci-lint
 
 ### Quick Install (Latest Release)
 
-#### macOS / Linux
+Releases provide **tarballs** (`.tar.gz`) for Linux and macOS, and **zip** for Windows. Each archive contains the binary, LICENSE, and README.
 
-Download and install the latest binary for your platform:
+#### macOS / Linux (tarball)
 
 ```bash
-# Detect platform and download latest binary
+# Get latest version and detect platform
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
+case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
 
-# Map architecture to release naming
-case "$ARCH" in
-  x86_64) ARCH="amd64" ;;
-  aarch64|arm64) ARCH="arm64" ;;
-  i386|i686) ARCH="386" ;;
-esac
-
-# Download latest binary
-BINARY="gitlab-ci-lint-${OS}-${ARCH}"
-if [ "$OS" = "windows" ]; then
-  BINARY="${BINARY}.exe"
-fi
-
-curl -L -o gitlab-ci-lint "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/${BINARY}"
-
-# Make executable and install to ~/.local/bin
+# Download tarball and extract
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | tar xz
 chmod +x gitlab-ci-lint
 mkdir -p ~/.local/bin
 mv gitlab-ci-lint ~/.local/bin/
 
-# Add ~/.local/bin to PATH if not already present
-if [[ :$PATH: != *":$HOME/.local/bin:"* ]]; then
-  echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc  # or ~/.zshrc
-  export PATH=$HOME/.local/bin:$PATH
-fi
+# Add ~/.local/bin to PATH if needed
+[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+export PATH=$HOME/.local/bin:$PATH
 
-# Verify installation
 gitlab-ci-lint version
 ```
 
 #### Linux (AMD64)
 
 ```bash
-# Download latest binary
-curl -L -o gitlab-ci-lint https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-linux-amd64
-
-# Install
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_linux_amd64.tar.gz" | tar xz
 chmod +x gitlab-ci-lint
 sudo mv gitlab-ci-lint /usr/local/bin/
-
-# Verify
 gitlab-ci-lint version
 ```
 
 #### macOS (Apple Silicon)
 
 ```bash
-# Download latest binary
-curl -L -o gitlab-ci-lint https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-darwin-arm64
-
-# Install
+VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | jq -r .tag_name | sed 's/^v//')
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_darwin_arm64.tar.gz" | tar xz
 chmod +x gitlab-ci-lint
 sudo mv gitlab-ci-lint /usr/local/bin/
-
-# Verify
 gitlab-ci-lint version
 ```
 
-#### Windows (PowerShell)
+#### Windows (PowerShell, zip)
 
 ```powershell
-# Download latest binary
-Invoke-WebRequest -Uri "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-windows-amd64.exe" -OutFile "gitlab-ci-lint.exe"
+# Get latest version
+$version = (Invoke-RestMethod -Uri "https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest").tag_name -replace '^v', ''
 
-# Create directory and move binary
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\bin"
-Move-Item -Path gitlab-ci-lint.exe -Destination "$env:USERPROFILE\bin\"
+# Download zip and extract
+$zip = "gitlab-ci-lint_${version}_windows_amd64.zip"
+Invoke-WebRequest -Uri "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v$version/$zip" -OutFile $zip -UseBasicParsing
+Expand-Archive -Path $zip -DestinationPath . -Force
+Move-Item -Path "gitlab-ci-lint.exe" -Destination "$env:USERPROFILE\bin\" -Force
+Remove-Item $zip
 
-# Add to PATH (if not already present)
+# Add to PATH if needed
 $binPath = "$env:USERPROFILE\bin"
-$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($currentPath -notlike "*$binPath*") {
-  [Environment]::SetEnvironmentVariable("Path", "$currentPath;$binPath", "User")
+$path = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($path -notlike "*$binPath*") {
+  [Environment]::SetEnvironmentVariable("Path", "$path;$binPath", "User")
   $env:Path += ";$binPath"
 }
-
-# Verify installation (restart terminal first)
 gitlab-ci-lint version
 ```
 

@@ -11,6 +11,7 @@ import (
 type APIValidator struct {
 	client  *gitlab.Client
 	project string
+	debug   gitlab.DebugLogger
 }
 
 // NewAPIValidator creates a new API validator
@@ -18,7 +19,13 @@ func NewAPIValidator(client *gitlab.Client, project string) *APIValidator {
 	return &APIValidator{
 		client:  client,
 		project: project,
+		debug:   nil,
 	}
+}
+
+// SetDebugLogger sets the debug logger for the validator
+func (v *APIValidator) SetDebugLogger(debug gitlab.DebugLogger) {
+	v.debug = debug
 }
 
 // Validate validates the CI configuration using the GitLab API
@@ -31,7 +38,7 @@ func (v *APIValidator) Validate(content []byte) Result {
 	ctx := context.Background()
 
 	// Call GitLab API
-	resp, err := v.client.Lint(ctx, content, v.project)
+	resp, err := v.client.Lint(ctx, content, v.project, v.debug)
 	if err != nil {
 		result.Valid = false
 		result.Errors = []Error{
