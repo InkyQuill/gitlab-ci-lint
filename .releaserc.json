@@ -10,12 +10,7 @@
       {
         "successComment": false,
         "failTitle": false,
-        "failComment": false,
-        "assets": [
-          {
-            "path": "build/gitlab-ci-lint-*"
-          }
-        ]
+        "failComment": false
       }
     ]
   ],
