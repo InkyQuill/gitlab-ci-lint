@@ -1,0 +1,72 @@
+version: 2
+
+project_name: gitlab-ci-lint
+
+env:
+  - CGO_ENABLED=0
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: gitlab-ci-lint
+    main: ./cmd/gitlab-ci-lint
+    binary: gitlab-ci-lint
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    ldflags:
+      - -s -w
+      - -X github.com/InkyQuill/gitlab-ci-lint/pkg/version.Version={{.Version}}
+      - -X github.com/InkyQuill/gitlab-ci-lint/pkg/version.Commit={{.Commit}}
+      - -X github.com/InkyQuill/gitlab-ci-lint/pkg/version.BuildDate={{.Date}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}{{ with .Arm }}_v{{ . }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - '^refactor:'
+      - '^style:'
+  use: github-native
+
+release:
+  github:
+    owner: InkyQuill
+    name: gitlab-ci-lint
+  draft: false
+  prerelease: auto
+  mode: replace

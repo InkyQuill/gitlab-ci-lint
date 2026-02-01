@@ -2,67 +2,32 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
 
-      - uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+          cache: true
 
-      - uses: actions/setup-node@v4
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
         with:
-          node-version: '20'
-
-      - name: Install semantic-release dependencies
-        run: |
-          npm install -g \
-            semantic-release@22 \
-            @semantic-release/git@10 \
-            @semantic-release/changelog@6 \
-            @semantic-release/github@9
-
-      - name: Run semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-        run: npx semantic-release
-
-      - name: Get version from git tag
-        id: get_version
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Version: ${VERSION}"
-
-      - name: Build binaries for all platforms
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
-          COMMIT: ${{ github.sha }}
-          BUILD_DATE: ${{ github.event.head_commit.timestamp }}
-        run: |
-          make build-all
-          echo "Build artifacts:"
-          ls -lh build/
-
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            build/gitlab-ci-lint-*
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
