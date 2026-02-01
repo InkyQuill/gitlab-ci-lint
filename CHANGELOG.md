@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.0...v1.0.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* correct URL encoding test and remove redundant test step from lint ([ffeefa5](https://github.com/InkyQuill/gitlab-ci-lint/commit/ffeefa522ae04f1f04e87618898dc24dda179d2e))
+* resolve double URL encoding in project path ([06f791a](https://github.com/InkyQuill/gitlab-ci-lint/commit/06f791a87e4fe7d25e6ba0c41d974bdcf5708a32))
+* resolve nil pointer panics and implement proper config priority ([decc6c6](https://github.com/InkyQuill/gitlab-ci-lint/commit/decc6c6704a03370974103b897f82e570af397a1))
+
 # [1.0.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.4.1...v1.0.0) (2026-02-01)
 
 
