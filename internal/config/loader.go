@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -40,6 +41,18 @@ func NewLoader(flags *ConfigFlags) *Loader {
 	}
 }
 
+// parseTimeout parses a timeout string into a time.Duration pointer
+func (l *Loader) parseTimeout(timeoutStr string) (*time.Duration, error) {
+	if timeoutStr == "" {
+		return nil, nil // Not set
+	}
+	duration, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid timeout format: %w", err)
+	}
+	return &duration, nil
+}
+
 // Load loads configuration from all sources and merges them with proper priority
 // Priority (low to high): defaults -> config file -> env vars -> CLI flags
 func (l *Loader) Load() (*Config, error) {
@@ -60,7 +73,10 @@ func (l *Loader) Load() (*Config, error) {
 	cfg = l.mergeConfigs(cfg, envCfg)
 
 	// 3. Load CLI flags
-	flagCfg := l.loadFlags()
+	flagCfg, err := l.loadFlags()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load flags: %w", err)
+	}
 	cfg = l.mergeConfigs(cfg, flagCfg)
 
 	// Validate final configuration
@@ -125,8 +141,10 @@ func (l *Loader) loadEnvVars() Config {
 	}
 
 	if timeout := os.Getenv("GCL_TIMEOUT"); timeout != "" {
-		// Parse timeout (handled in merge/loadFlags)
-		cfg.GitLab.Timeout = 0 // Will be set during merge
+		parsed, err := l.parseTimeout(timeout)
+		if err == nil && parsed != nil {
+			cfg.GitLab.Timeout = parsed
+		}
 	}
 
 	if project := os.Getenv("GCL_PROJECT"); project != "" {
@@ -157,7 +175,7 @@ func (l *Loader) loadEnvVars() Config {
 }
 
 // loadFlags loads configuration from CLI flags
-func (l *Loader) loadFlags() Config {
+func (l *Loader) loadFlags() (Config, error) {
 	cfg := Config{}
 
 	if l.flags.Token != "" {
@@ -172,9 +190,13 @@ func (l *Loader) loadFlags() Config {
 		cfg.GitLab.Instance = l.flags.Instance
 	}
 
-	// Timeout is handled separately in merge due to parsing
+	// Timeout is parsed during flag loading
 	if l.flags.Timeout != "" {
-		cfg.GitLab.Timeout = 0
+		parsed, err := l.parseTimeout(l.flags.Timeout)
+		if err != nil {
+			return Config{}, fmt.Errorf("invalid timeout flag: %w", err)
+		}
+		cfg.GitLab.Timeout = parsed
 	}
 
 	if l.flags.Project != "" {
@@ -201,7 +223,7 @@ func (l *Loader) loadFlags() Config {
 		cfg.Output.Color = l.flags.Color
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 // mergeConfigs merges two configs, with over taking precedence
@@ -212,7 +234,7 @@ func (l *Loader) mergeConfigs(base, over Config) Config {
 	if over.GitLab.Instance != "" {
 		result.GitLab.Instance = over.GitLab.Instance
 	}
-	if over.GitLab.Timeout != 0 {
+	if over.GitLab.Timeout != nil {
 		result.GitLab.Timeout = over.GitLab.Timeout
 	}
 

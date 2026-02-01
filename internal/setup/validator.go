@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/InkyQuill/gitlab-ci-lint/internal/gitlab"
 )
 
 // TokenValidationResult contains the result of token validation
@@ -28,7 +30,7 @@ type InstanceInfo struct {
 // ValidateToken validates a GitLab personal access token against an instance
 func ValidateToken(instance, token string) (*TokenValidationResult, error) {
 	// Normalize instance URL
-	instanceURL := normalizeURL(instance)
+	instanceURL := gitlab.NormalizeInstanceURL(instance)
 
 	// Create HTTP client with timeout
 	client := &http.Client{
@@ -106,7 +108,7 @@ func ValidateToken(instance, token string) (*TokenValidationResult, error) {
 
 // DetectInstanceType attempts to detect the GitLab instance type
 func DetectInstanceType(instance string) (*InstanceInfo, error) {
-	instanceURL := normalizeURL(instance)
+	instanceURL := gitlab.NormalizeInstanceURL(instance)
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,
@@ -149,24 +151,9 @@ func DetectInstanceType(instance string) (*InstanceInfo, error) {
 	return info, nil
 }
 
-// normalizeURL ensures the instance URL has a proper format
-func normalizeURL(instance string) string {
-	instance = strings.TrimSpace(instance)
-
-	// Add scheme if missing
-	if !strings.HasPrefix(instance, "http://") && !strings.HasPrefix(instance, "https://") {
-		instance = "https://" + instance
-	}
-
-	// Remove trailing slash
-	instance = strings.TrimSuffix(instance, "/")
-
-	return instance
-}
-
 // TestConnection performs a quick connectivity test to the GitLab instance
 func TestConnection(ctx context.Context, instance string) error {
-	instanceURL := normalizeURL(instance)
+	instanceURL := gitlab.NormalizeInstanceURL(instance)
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,

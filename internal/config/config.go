@@ -13,8 +13,8 @@ type Config struct {
 
 // GitLabConfig contains GitLab instance settings
 type GitLabConfig struct {
-	Instance string        `yaml:"instance"`
-	Timeout  time.Duration `yaml:"timeout"`
+	Instance string         `yaml:"instance"`
+	Timeout  *time.Duration `yaml:"timeout"`
 }
 
 // AuthConfig contains authentication settings
@@ -39,7 +39,7 @@ type OutputConfig struct {
 
 // FilesConfig contains file discovery settings
 type FilesConfig struct {
-	SearchParent    bool     `yaml:"search_parent"`
-	MaxDepth        int      `yaml:"max_depth"`
-	IgnorePatterns  []string `yaml:"ignore_patterns"`
+	SearchParent   bool     `yaml:"search_parent"`
+	MaxDepth       int      `yaml:"max_depth"`
+	IgnorePatterns []string `yaml:"ignore_patterns"`
 }

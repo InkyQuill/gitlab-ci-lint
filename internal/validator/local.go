@@ -32,7 +32,7 @@ func (v *LocalValidator) Validate(content []byte) Result {
 
 	// First, check for basic YAML syntax errors
 	decoder := yaml.NewDecoder(bytes.NewReader(content))
-	decoder.KnownFields(true)
+	decoder.KnownFields(v.Strict)
 	err := decoder.Decode(&node)
 
 	if err != nil {

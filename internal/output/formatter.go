@@ -71,17 +71,17 @@ func (f *Formatter) formatText(w io.Writer, results []validator.Result, filename
 func (f *Formatter) formatTextResult(w io.Writer, result *validator.Result) {
 	// Print stage
 	stageName := strings.ToUpper(result.Stage[:1]) + result.Stage[1:]
-_, _ = fmt.Fprintf(w, "  %s: ", f.colorizer.Blue(stageName))
+	_, _ = fmt.Fprintf(w, "  %s: ", f.colorizer.Blue(stageName))
 
 	if result.Valid {
-	_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Green("Valid"))
+		_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Green("Valid"))
 	} else {
-	_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Red("Invalid"))
+		_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Red("Invalid"))
 	}
 
 	// Print errors
 	if len(result.Errors) > 0 {
-	_, _ = fmt.Fprintf(w, "\n")
+		_, _ = fmt.Fprintf(w, "\n")
 		for _, err := range result.Errors {
 			f.formatError(w, &err)
 		}
@@ -89,13 +89,13 @@ _, _ = fmt.Fprintf(w, "  %s: ", f.colorizer.Blue(stageName))
 
 	// Print warnings
 	if len(result.Warnings) > 0 {
-	_, _ = fmt.Fprintf(w, "\n")
+		_, _ = fmt.Fprintf(w, "\n")
 		for _, warn := range result.Warnings {
 			f.formatWarning(w, &warn)
 		}
 	}
 
-_, _ = fmt.Fprintf(w, "\n")
+	_, _ = fmt.Fprintf(w, "\n")
 }
 
 // formatError formats a validation error
@@ -107,12 +107,12 @@ func (f *Formatter) formatError(w io.Writer, err *validator.Error) {
 		if err.Column > 0 {
 			loc += fmt.Sprintf(":%d", err.Column)
 		}
-	_, _ = fmt.Fprintf(w, "%s %s: %s\n", prefix, f.colorizer.Gray(loc), err.Message)
+		_, _ = fmt.Fprintf(w, "%s %s: %s\n", prefix, f.colorizer.Gray(loc), err.Message)
 		if err.Content != "" {
-		_, _ = fmt.Fprintf(w, "      %s\n", f.colorizer.Gray(err.Content))
+			_, _ = fmt.Fprintf(w, "      %s\n", f.colorizer.Gray(err.Content))
 		}
 	} else {
-	_, _ = fmt.Fprintf(w, "%s %s\n", prefix, err.Message)
+		_, _ = fmt.Fprintf(w, "%s %s\n", prefix, err.Message)
 	}
 }
 
@@ -121,9 +121,9 @@ func (f *Formatter) formatWarning(w io.Writer, warn *validator.Warning) {
 	prefix := f.colorizer.Yellow("    ⚠")
 
 	if warn.Line > 0 {
-	_, _ = fmt.Fprintf(w, "%s %s (line %d)\n", prefix, warn.Message, warn.Line)
+		_, _ = fmt.Fprintf(w, "%s %s (line %d)\n", prefix, warn.Message, warn.Line)
 	} else {
-	_, _ = fmt.Fprintf(w, "%s %s\n", prefix, warn.Message)
+		_, _ = fmt.Fprintf(w, "%s %s\n", prefix, warn.Message)
 	}
 }
 
@@ -169,7 +169,7 @@ func (f *Formatter) FormatMessage(w io.Writer, level, message string) {
 		prefix = f.colorizer.Blue("Info:")
 	}
 
-_, _ = fmt.Fprintf(w, "%s %s\n", prefix, message)
+	_, _ = fmt.Fprintf(w, "%s %s\n", prefix, message)
 }
 
 // allValid checks if all results are valid

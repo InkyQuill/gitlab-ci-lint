@@ -359,10 +359,10 @@ func TestValidation_EmptyFile(t *testing.T) {
 
 func TestValidation_ExitCodes(t *testing.T) {
 	tests := []struct {
-		name      string
-		yaml      string
-		skipAPI   bool
-		wantCode  int
+		name     string
+		yaml     string
+		skipAPI  bool
+		wantCode int
 	}{
 		{
 			name: "valid_local",
