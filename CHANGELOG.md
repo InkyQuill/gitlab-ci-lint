@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.1...v0.3.2) (2026-02-01)
+
+
+### Bug Fixes
+
+* implement code quality fixes from review ([b66e793](https://github.com/InkyQuill/gitlab-ci-lint/commit/b66e793d8d8dbe18865cc0542833dfb1402b71e1))
+* implement code quality fixes from second review audit ([a7a7c53](https://github.com/InkyQuill/gitlab-ci-lint/commit/a7a7c53a6ce245185dd4e1f9c8b1a59309ccd057))
+
 ## [0.3.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.0...v0.3.1) (2026-02-01)
 
 
