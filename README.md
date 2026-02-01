@@ -25,10 +25,26 @@ A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.ym
 
 ```bash
 # macOS / Linux (one-line install)
-curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | \
-  grep "browser_download_url.*$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m)" | \
-  cut -d '"' -f 4 | xargs -I {} curl -L -o gitlab-ci-lint {} && \
-  chmod +x gitlab-ci-lint && sudo mv gitlab-ci-lint /usr/local/bin/
+# Detect OS and architecture
+OS=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+# Map architecture to release naming
+case "$ARCH" in
+  x86_64) ARCH="amd64" ;;
+  aarch64|arm64) ARCH="arm64" ;;
+  i386|i686) ARCH="386" ;;
+esac
+
+# Download latest binary
+BINARY="gitlab-ci-lint-${OS}-${ARCH}"
+if [ "$OS" = "windows" ]; then
+  BINARY="${BINARY}.exe"
+fi
+
+curl -L -o gitlab-ci-lint "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/${BINARY}"
+chmod +x gitlab-ci-lint
+sudo mv gitlab-ci-lint /usr/local/bin/
 ```
 
 ### 2. Configure
@@ -71,10 +87,23 @@ Download and install the latest binary for your platform:
 
 ```bash
 # Detect platform and download latest binary
-curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | \
-  grep "browser_download_url.*$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m)" | \
-  cut -d '"' -f 4 | \
-  xargs -I {} curl -L -o gitlab-ci-lint {}
+OS=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+# Map architecture to release naming
+case "$ARCH" in
+  x86_64) ARCH="amd64" ;;
+  aarch64|arm64) ARCH="arm64" ;;
+  i386|i686) ARCH="386" ;;
+esac
+
+# Download latest binary
+BINARY="gitlab-ci-lint-${OS}-${ARCH}"
+if [ "$OS" = "windows" ]; then
+  BINARY="${BINARY}.exe"
+fi
+
+curl -L -o gitlab-ci-lint "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/${BINARY}"
 
 # Make executable and install to ~/.local/bin
 chmod +x gitlab-ci-lint
@@ -291,12 +320,14 @@ For API validation, you need a GitLab personal access token:
 
 ## Documentation
 
-- 📚 [Quick Start Guide](docs/guides/quick-start.md) - Get started in minutes
-- 🔧 [Configuration Reference](CONFIG.md) - Detailed configuration options
-- 🏗️ [Architecture Overview](docs/architecture/overview.md) - System design
-- 📖 [Examples](docs/examples/) - Usage examples
-- 🐛 [Troubleshooting](docs/guides/troubleshooting.md) - Common issues and solutions
-- 💻 [API Reference](docs/api/reference.md) - Developer documentation
+- 📚 [Wiki](https://github.com/InkyQuill/gitlab-ci-lint/wiki) - Full documentation
+- 🚀 [Quick Start](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Quick-Start) - Get started in minutes
+- 🔧 [Configuration Guide](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Configuration-Guide) - Detailed configuration options
+- 🏗️ [Architecture Overview](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Architecture-Overview) - System design
+- 📖 [Basic Usage](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Basic-Usage) - Usage examples
+- 🐛 [Troubleshooting](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Troubleshooting) - Common issues and solutions
+- 🔌 [CI/CD Integration](https://github.com/InkyQuill/gitlab-ci-lint/wiki/CI-CD-Integration) - Integration examples
+- 💻 [API Reference](https://github.com/InkyQuill/gitlab-ci-lint/wiki/API-Reference) - Developer documentation
 - 🤝 [Contributing](CONTRIBUTING.md) - Contribution guidelines
 
 ## Usage
