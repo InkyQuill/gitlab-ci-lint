@@ -1,5 +1,18 @@
 # Changelog
 
+# [0.2.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.1.1...v0.2.0) (2026-02-01)
+
+
+### Bug Fixes
+
+* configure semantic-release for GitHub Actions ([aa42d9d](https://github.com/InkyQuill/gitlab-ci-lint/commit/aa42d9d24b9b05bf2b8ea01d668cf8c2d1ac7c1a))
+* Fix CI tests and Go version requirements ([24dcec5](https://github.com/InkyQuill/gitlab-ci-lint/commit/24dcec5acb11e0e9b1829894be3b593225303744))
+
+
+### Features
+
+* Implement enhanced file discovery and multi-file validation ([f8e723d](https://github.com/InkyQuill/gitlab-ci-lint/commit/f8e723d52faf0429d29854e35d4522f890abe28c))
+
 ## [0.1.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.1.0...v0.1.1) (2026-02-01)
 
 
