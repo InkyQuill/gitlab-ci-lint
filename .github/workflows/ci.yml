@@ -9,9 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.21', '1.22']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,19 +18,26 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
       - name: Install dependencies
         run: go mod download
 
-      - name: Run tests
+      - name: Run unit tests
         run: make test-unit
 
-      - name: Generate coverage report
-        run: make test-coverage
+      - name: Run integration tests
+        run: go test -v ./tests/integration/... -run '^TestValidation_|^TestFileDiscovery_'
+
+      - name: Run all tests with coverage
+        run: make test-all
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          files: ./coverage.out
+          files: ./coverage_combined.out
           fail_ci_if_error: false
 
   lint:
@@ -43,7 +47,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.24'
 
       - name: Run linters
         run: make lint
@@ -55,6 +59,9 @@ jobs:
             goimports -l . | tee /dev/stderr | test -z
           fi
 
+      - name: Run tests
+        run: make test-unit
+
   build:
     runs-on: ubuntu-latest
     needs: [test, lint]
@@ -63,7 +70,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.24'
 
       - name: Build
         run: make build

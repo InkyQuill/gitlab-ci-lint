@@ -41,7 +41,7 @@ func (v *LocalValidator) Validate(content []byte) Result {
 		// Check for extra content after first document (should only have one document)
 		var extra interface{}
 		extraDecoder := yaml.NewDecoder(bytes.NewReader(content))
-		extraDecoder.Decode(&node)
+		_ = extraDecoder.Decode(&node)
 		if extraDecoder.Decode(&extra) == nil {
 			result.Errors = append(result.Errors, Error{
 				Message: "CI config should contain only one YAML document",
@@ -111,7 +111,7 @@ func (v *LocalValidator) parseYAMLError(errorMsg string, content []byte) []Error
 		parts := strings.Split(errorMsg, "line ")
 		if len(parts) > 1 {
 			lineStr := strings.Split(parts[1], ":")[0]
-			fmt.Sscanf(lineStr, "%d", &line)
+			_, _ = fmt.Sscanf(lineStr, "%d", &line)
 		}
 	}
 
@@ -120,7 +120,7 @@ func (v *LocalValidator) parseYAMLError(errorMsg string, content []byte) []Error
 		parts := strings.Split(errorMsg, "column ")
 		if len(parts) > 1 {
 			colStr := strings.Split(parts[1], " ")[0]
-			fmt.Sscanf(colStr, "%d", &column)
+			_, _ = fmt.Sscanf(colStr, "%d", &column)
 		}
 	}
 

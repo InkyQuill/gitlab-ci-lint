@@ -19,9 +19,14 @@ func GetDefaults() Config {
 			Project: "",
 		},
 		Output: OutputConfig{
-			Format: "text",
+			Format:  "text",
 			Verbose: false,
-			Color: "auto",
+			Color:   "auto",
+		},
+		Files: FilesConfig{
+			SearchParent:   true,
+			MaxDepth:       10,
+			IgnorePatterns: nil, // Will use discoverer defaults
 		},
 	}
 }

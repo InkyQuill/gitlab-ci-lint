@@ -5,8 +5,21 @@
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     "@semantic-release/git",
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "failTitle": false,
+        "failComment": false,
+        "assets": [
+          {
+            "path": "build/gitlab-ci-lint-*"
+          }
+        ]
+      }
+    ]
   ],
   "changelogFile": "CHANGELOG.md",
-  "changelogTitle": "# Changelog"
+  "changelogTitle": "# Changelog",
+  "tagFormat": "v${version}"
 }

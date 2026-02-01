@@ -68,7 +68,7 @@ func (c *Client) Lint(ctx context.Context, content []byte, projectRef string) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response body
 	respBody, err := io.ReadAll(resp.Body)
@@ -136,7 +136,7 @@ func (c *Client) ValidateToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to validate token: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("authentication failed: invalid or expired token")

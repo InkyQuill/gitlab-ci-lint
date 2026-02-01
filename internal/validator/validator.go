@@ -2,10 +2,10 @@ package validator
 
 // Result represents the result of a validation operation
 type Result struct {
-	Valid  bool     `yaml:"valid" json:"valid"`
-	Errors []Error  `yaml:"errors,omitempty" json:"errors,omitempty"`
+	Valid    bool      `yaml:"valid" json:"valid"`
+	Errors   []Error   `yaml:"errors,omitempty" json:"errors,omitempty"`
 	Warnings []Warning `yaml:"warnings,omitempty" json:"warnings,omitempty"`
-	Stage  string   `yaml:"stage" json:"stage"` // "local" or "api"
+	Stage    string    `yaml:"stage" json:"stage"` // "local" or "api"
 }
 
 // Error represents a validation error
@@ -20,6 +20,13 @@ type Error struct {
 type Warning struct {
 	Message string `yaml:"message" json:"message"`
 	Line    int    `yaml:"line,omitempty" json:"line,omitempty"`
+}
+
+// FileResult represents validation results for a single file
+type FileResult struct {
+	FilePath string   `yaml:"file_path" json:"file_path"`
+	Valid    bool     `yaml:"valid" json:"valid"`
+	Stages   []Result `yaml:"stages" json:"stages"`
 }
 
 // Validator defines the interface for validation operations
