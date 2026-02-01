@@ -430,12 +430,12 @@ func TestValidation_HelpFlag(t *testing.T) {
 	}
 }
 
-func TestValidation_VersionFlag(t *testing.T) {
-	cmd := exec.Command(mainBinary, "--version")
+func TestValidation_VersionCommand(t *testing.T) {
+	cmd := exec.Command(mainBinary, "version")
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("Version flag failed: %v", err)
+		t.Fatalf("Version command failed: %v", err)
 	}
 
 	outputStr := string(output)

@@ -49,25 +49,45 @@ build-all: clean
 	)
 	@echo "Build complete for all platforms"
 
-# Run tests
+# Run all tests
 .PHONY: test
 test:
-	@echo "Running tests..."
-	go test -v -race -cover ./...
+	@echo "Running all tests..."
+	go test -v -race -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out | grep total
 
 # Run unit tests only
 .PHONY: test-unit
 test-unit:
 	@echo "Running unit tests..."
 	go test -v -race -coverprofile=coverage_unit.out ./internal/... ./pkg/...
+	go tool cover -func=coverage_unit.out | grep total
 
-# Run tests with coverage
+# Run integration tests only
+.PHONY: test-integration
+test-integration: build
+	@echo "Running integration tests..."
+	go test -v -race -coverprofile=coverage_integration.out ./tests/...
+	go tool cover -func=coverage_integration.out | grep total
+
+# Run all tests with combined coverage
+.PHONY: test-all
+test-all: test-unit test-integration
+	@echo "Combining coverage reports..."
+	@echo "mode: set" > coverage_combined.out
+	@for file in coverage_unit.out coverage_integration.out; do \
+		if [ -f $$file ]; then \
+			grep -v "^mode:" $$file >> coverage_combined.out || true; \
+		fi; \
+	done
+	@echo "Total coverage:"
+	@go tool cover -func=coverage_combined.out | grep total
+	@go tool cover -html=coverage_combined.out -o coverage_combined.html
+	@echo "Combined coverage report: coverage_combined.html"
+
+# Run tests with coverage (legacy target, redirects to test-all)
 .PHONY: test-coverage
-test-coverage:
-	@echo "Running tests with coverage..."
-	go test -v -race -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report: coverage.html"
+test-coverage: test-all
 
 # Run linter
 .PHONY: lint
@@ -118,18 +138,21 @@ run: build
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  all          - Build for current platform (default)"
-	@echo "  build        - Build for current platform"
-	@echo "  build-all    - Build for all platforms"
-	@echo "  test         - Run tests"
-	@echo "  test-coverage- Run tests with coverage report"
-	@echo "  lint         - Run linters"
-	@echo "  fmt          - Format code"
-	@echo "  tidy         - Tidy dependencies"
-	@echo "  install      - Install to GOPATH/bin"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  run          - Build and run (use ARGS='--help' for options)"
-	@echo "  help         - Show this help message"
+	@echo "  all           - Build for current platform (default)"
+	@echo "  build         - Build for current platform"
+	@echo "  build-all     - Build for all platforms"
+	@echo "  test          - Run all tests"
+	@echo "  test-unit     - Run unit tests only"
+	@echo "  test-integration - Run integration tests only"
+	@echo "  test-all      - Run all tests with combined coverage report"
+	@echo "  test-coverage - Run tests with coverage report (alias for test-all)"
+	@echo "  lint          - Run linters"
+	@echo "  fmt           - Format code"
+	@echo "  tidy          - Tidy dependencies"
+	@echo "  install       - Install to GOPATH/bin"
+	@echo "  clean         - Clean build artifacts"
+	@echo "  run           - Build and run (use ARGS='--help' for options)"
+	@echo "  help          - Show this help message"
 	@echo ""
 	@echo "Variables:"
 	@echo "  VERSION      - Version string (default: git describe or 'dev')"

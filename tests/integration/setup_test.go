@@ -75,7 +75,16 @@ func buildBinaries() error {
 	return setupCmd.Run()
 }
 
+// skipInCI skips interactive tests in CI environment
+func skipInCI(t *testing.T) {
+	t.Helper()
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping interactive test in CI environment")
+	}
+}
+
 func TestSetupCommand_CreatesConfigFile(t *testing.T) {
+	skipInCI(t)
 	// Create temp directory for config
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
@@ -130,6 +139,7 @@ func TestSetupCommand_CreatesConfigFile(t *testing.T) {
 }
 
 func TestSetupCommand_ModifyExistingConfig(t *testing.T) {
+	skipInCI(t)
 	// Create temp directory
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
@@ -193,6 +203,7 @@ output:
 }
 
 func TestSetupCommand_OverwriteExistingConfig(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 	configFile := filepath.Join(configDir, "config.yaml")
@@ -245,6 +256,7 @@ func TestSetupCommand_OverwriteExistingConfig(t *testing.T) {
 }
 
 func TestSetupCommand_CancelSetup(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 	configFile := filepath.Join(configDir, "config.yaml")
@@ -290,6 +302,7 @@ func TestSetupCommand_CancelSetup(t *testing.T) {
 }
 
 func TestSetupCommand_RejectSummary(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 	configFile := filepath.Join(configDir, "config.yaml")
@@ -322,6 +335,7 @@ func TestSetupCommand_RejectSummary(t *testing.T) {
 }
 
 func TestSetupCommand_ForceFlag(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 	configFile := filepath.Join(configDir, "config.yaml")
@@ -368,7 +382,7 @@ func TestSetupCommand_HelpFlag(t *testing.T) {
 	}
 
 	outputStr := string(output)
-	if !strings.Contains(outputStr, "Interactive setup for gitlab-ci-lint") {
+	if !strings.Contains(outputStr, "Interactive configuration wizard") {
 		t.Error("Expected help text in output")
 	}
 
@@ -378,6 +392,7 @@ func TestSetupCommand_HelpFlag(t *testing.T) {
 }
 
 func TestSetupCommand_OutputContainsSummary(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 
@@ -425,6 +440,7 @@ func TestSetupCommand_OutputContainsSummary(t *testing.T) {
 }
 
 func TestSetupCommand_CreatesDirectory(t *testing.T) {
+	skipInCI(t)
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "nested", ".gitlab-ci-lint")
 
@@ -509,6 +525,7 @@ func captureCommand(cmd *exec.Cmd) (string, string, error) {
 
 // TestSetupCommand_Concurrent tests concurrent setup operations
 func TestSetupCommand_Concurrent(t *testing.T) {
+	skipInCI(t)
 	if testing.Short() {
 		t.Skip("Skipping concurrent test in short mode")
 	}
