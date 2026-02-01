@@ -8,6 +8,7 @@ type Config struct {
 	Auth       AuthConfig       `yaml:"auth"`
 	Validation ValidationConfig `yaml:"validation"`
 	Output     OutputConfig     `yaml:"output"`
+	Files      FilesConfig      `yaml:"files"`
 }
 
 // GitLabConfig contains GitLab instance settings
@@ -34,4 +35,11 @@ type OutputConfig struct {
 	Format  string `yaml:"format"` // text, json, yaml
 	Verbose bool   `yaml:"verbose"`
 	Color   string `yaml:"color"` // auto, always, never
+}
+
+// FilesConfig contains file discovery settings
+type FilesConfig struct {
+	SearchParent    bool     `yaml:"search_parent"`
+	MaxDepth        int      `yaml:"max_depth"`
+	IgnorePatterns  []string `yaml:"ignore_patterns"`
 }

@@ -181,3 +181,95 @@ func (f *Formatter) allValid(results []validator.Result) bool {
 	}
 	return true
 }
+
+// FormatSummary formats and writes a summary of batch validation results
+func (f *Formatter) FormatSummary(w io.Writer, format string, results []validator.FileResult) {
+	switch format {
+	case "json":
+		f.formatSummaryJSON(w, results)
+	case "yaml":
+		f.formatSummaryYAML(w, results)
+	default:
+		f.formatSummaryText(w, results)
+	}
+}
+
+// formatSummaryText formats summary as human-readable text
+func (f *Formatter) formatSummaryText(w io.Writer, results []validator.FileResult) {
+	total := len(results)
+	valid := 0
+	invalid := 0
+
+	for _, result := range results {
+		if result.Valid {
+			valid++
+		} else {
+			invalid++
+		}
+	}
+
+	_, _ = fmt.Fprintf(w, "\n  %s\n\n", f.colorizer.Blue("Summary"))
+	_, _ = fmt.Fprintf(w, "  Total files: %d\n", total)
+	_, _ = fmt.Fprintf(w, "  %s: %d\n", f.colorizer.Green("Valid"), valid)
+	_, _ = fmt.Fprintf(w, "  %s: %d\n\n", f.colorizer.Red("Invalid"), invalid)
+}
+
+// formatSummaryJSON formats summary as JSON
+func (f *Formatter) formatSummaryJSON(w io.Writer, results []validator.FileResult) {
+	total := len(results)
+	valid := 0
+	invalid := 0
+
+	for _, result := range results {
+		if result.Valid {
+			valid++
+		} else {
+			invalid++
+		}
+	}
+
+	output := map[string]interface{}{
+		"summary": map[string]int{
+			"total":   total,
+			"valid":   valid,
+			"invalid": invalid,
+		},
+		"files": results,
+	}
+
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+	_ = encoder.Encode(output)
+}
+
+// formatSummaryYAML formats summary as YAML
+func (f *Formatter) formatSummaryYAML(w io.Writer, results []validator.FileResult) {
+	total := len(results)
+	valid := 0
+	invalid := 0
+
+	for _, result := range results {
+		if result.Valid {
+			valid++
+		} else {
+			invalid++
+		}
+	}
+
+	output := map[string]interface{}{
+		"summary": map[string]int{
+			"total":   total,
+			"valid":   valid,
+			"invalid": invalid,
+		},
+		"files": results,
+	}
+
+	data, err := yaml.Marshal(output)
+	if err != nil {
+		_, _ = fmt.Fprintf(w, "Error formatting YAML: %v\n", err)
+		return
+	}
+
+	_, _ = fmt.Fprintln(w, string(data))
+}
