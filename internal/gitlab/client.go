@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -135,25 +134,22 @@ func (c *Client) Lint(ctx context.Context, content []byte, projectRef string, de
 
 // buildLintEndpoint builds the lint endpoint URL
 func (c *Client) buildLintEndpoint(projectRef string) (string, error) {
-	// Parse base URL
+	// Parse base URL to extract scheme and host
 	baseURL, err := url.Parse(c.instance)
 	if err != nil {
 		return "", fmt.Errorf("invalid instance URL: %w", err)
 	}
 
-	// Build API path
-	apiPath := "/api/v4/ci/lint"
-
-	if projectRef != "" {
-		// Use project-specific endpoint: /api/v4/projects/:id/ci/lint
-		// URL encode the project reference (handles both IDs and paths like "group/project")
-		apiPath = path.Join("/api/v4", "projects", url.PathEscape(projectRef), "ci", "lint")
+	if projectRef == "" {
+		// Global lint endpoint: /api/v4/ci/lint
+		return fmt.Sprintf("%s://%s/api/v4/ci/lint", baseURL.Scheme, baseURL.Host), nil
 	}
 
-	// Join base URL with API path
-	baseURL.Path = apiPath
-
-	return baseURL.String(), nil
+	// Project-specific endpoint: /api/v4/projects/:id/ci/lint
+	// Manually encode and build to avoid double-encoding
+	encodedProject := url.PathEscape(projectRef)
+	return fmt.Sprintf("%s://%s/api/v4/projects/%s/ci/lint",
+		baseURL.Scheme, baseURL.Host, encodedProject), nil
 }
 
 // ValidateToken checks if the current token is valid by making a simple API call

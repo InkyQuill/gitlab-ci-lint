@@ -123,7 +123,13 @@ func prepareGitLabRegistry(ctx context.Context, cfg *config.Config, formatter *o
 	// Create registry from configured instances
 	timeout := cfg.GitLab.GetTimeout()
 	instances := convertConfigInstancesToRegistry(cfg.GitLab.Instances)
-	registry := gitlab.NewClientRegistry(instances, timeout, formatter.GetDebugLogger())
+
+	// Only pass debug logger if it's initialized (avoid nil interface issues)
+	var debugLogger gitlab.DebugLogger
+	if formatter.GetDebugLogger() != nil {
+		debugLogger = formatter.GetDebugLogger()
+	}
+	registry := gitlab.NewClientRegistry(instances, timeout, debugLogger)
 
 	// Validate all tokens in verbose mode
 	if cfg.Output.Verbose {
@@ -490,10 +496,32 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 
 	// Stage 2: API validation with per-file routing (unless skipped)
 	if !cfg.Validation.SkipAPI && registry != nil {
-		// Detect instance and project from .git/config
-		instanceURL, projectPath, err := gitlab.DetectInstanceForFile(filePath)
+		// Step 1: Auto-detect instance and project from .git/config
+		detectedInstanceURL, detectedProjectPath, err := gitlab.DetectInstanceForFile(filePath)
 
-		// Skip API validation if not in a git repository or no instance detected
+		// Step 2: Start with autodetected values (may be empty)
+		instanceURL := detectedInstanceURL
+		projectPath := detectedProjectPath
+
+		// Step 3: Override with cfg.GitLab.Instance (from ENV GCL_INSTANCE or --instance flag)
+		if cfg.GitLab.Instance != "" {
+			instanceURL = cfg.GitLab.Instance
+			if formatter.GetDebugLogger() != nil {
+				formatter.GetDebugLogger().Log("ROUTE",
+					fmt.Sprintf("file=%s instance overridden by config/flag: %s", filePath, instanceURL))
+			}
+		}
+
+		// Step 4: Override with cfg.Validation.Project (from ENV GCL_PROJECT or --project flag)
+		if cfg.Validation.Project != "" {
+			projectPath = cfg.Validation.Project
+			if formatter.GetDebugLogger() != nil {
+				formatter.GetDebugLogger().Log("ROUTE",
+					fmt.Sprintf("file=%s project overridden by flag/env: %s", filePath, projectPath))
+			}
+		}
+
+		// Skip API validation if no instance detected AND no override provided
 		if err != nil || instanceURL == "" {
 			if formatter.GetDebugLogger() != nil {
 				formatter.GetDebugLogger().Log("ROUTE",
@@ -529,7 +557,10 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 			formatter.GetDebugLogger().LogValidate("Stage 2: API validation")
 		}
 		apiValidator := validator.NewAPIValidator(client, projectPath)
-		apiValidator.SetDebugLogger(formatter.GetDebugLogger())
+		// Only set debug logger if it's initialized (avoid nil pointer dereference)
+		if formatter.GetDebugLogger() != nil {
+			apiValidator.SetDebugLogger(formatter.GetDebugLogger())
+		}
 		apiResult := apiValidator.Validate(content)
 		result.Stages = append(result.Stages, apiResult)
 

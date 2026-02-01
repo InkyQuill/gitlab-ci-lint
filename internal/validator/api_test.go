@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -171,9 +172,11 @@ func TestAPIValidator_ProjectSpecific(t *testing.T) {
 func TestAPIValidator_ProjectByPath(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify project path is URL-encoded
+		// r.URL.Path is decoded, use RequestURI() to get the original encoded path
 		expectedPath := "/api/v4/projects/group%2Fproject/ci/lint"
-		if r.URL.Path != expectedPath {
-			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+		// RequestURI includes query string if present, so check prefix
+		if !strings.HasPrefix(r.URL.RequestURI(), expectedPath) {
+			t.Errorf("Expected path to start with %s, got %s", expectedPath, r.URL.RequestURI())
 		}
 
 		response := gitlab.LintResponse{
