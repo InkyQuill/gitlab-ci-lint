@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.3.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.2.1...v0.3.0) (2026-02-01)
+
+
+### Features
+
+* improve API integration with auto-detection and debug mode ([96b740b](https://github.com/InkyQuill/gitlab-ci-lint/commit/96b740bdc6f68436c67541a648ef3eb9189a3ff9))
+
 ## [0.2.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.2.0...v0.2.1) (2026-02-01)
 
 
