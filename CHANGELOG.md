@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.4.0...v0.4.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* pin goreleaser to v2 for config version 2 ([69e2360](https://github.com/InkyQuill/gitlab-ci-lint/commit/69e2360febabac1f789491c211c7e9d5e5251ddc))
+
 # [0.4.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.3.2...v0.4.0) (2026-02-01)
 
 
