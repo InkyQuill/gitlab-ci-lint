@@ -474,7 +474,7 @@ require (
 ```
 
 ### Build Tools
-- Go 1.25.6+
+- Go 1.24 or later
 - Make (build automation)
 - golangci-lint (linting, optional)
 - goimports (import formatting, optional)

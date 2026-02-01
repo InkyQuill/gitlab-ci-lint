@@ -21,15 +21,30 @@ A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.ym
 
 ## Quick Start
 
-### Interactive Setup (Recommended)
+### 1. Install
 
 ```bash
+# macOS / Linux (one-line install)
+curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | \
+  grep "browser_download_url.*$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m)" | \
+  cut -d '"' -f 4 | xargs -I {} curl -L -o gitlab-ci-lint {} && \
+  chmod +x gitlab-ci-lint && sudo mv gitlab-ci-lint /usr/local/bin/
+```
+
+### 2. Configure
+
+```bash
+# Run interactive setup
 gitlab-ci-lint setup
 ```
 
-The wizard will guide you through configuring your GitLab instance, token, and preferences.
+The wizard will help you configure:
+- GitLab instance URL (e.g., `https://gitlab.com` or self-hosted)
+- Personal access token for API validation
+- Default project (optional)
+- Output preferences
 
-### Basic Usage
+### 3. Validate
 
 ```bash
 # Local validation only (no API required)
@@ -39,29 +54,240 @@ gitlab-ci-lint --skip-api .gitlab-ci.yml
 export GCL_TOKEN=glpat-your-token
 gitlab-ci-lint .gitlab-ci.yml
 
-# Project-specific validation
+# Project-specific validation (validates job references)
 gitlab-ci-lint --project group/project .gitlab-ci.yml
+
+# Auto-discovery (searches current and parent directories)
+gitlab-ci-lint
 ```
 
 ## Installation
 
-### From Binaries
+### Quick Install (Latest Release)
 
-Download the latest release from [GitHub Releases](https://github.com/InkyQuill/gitlab-ci-lint/releases).
+#### macOS / Linux
+
+Download and install the latest binary for your platform:
+
+```bash
+# Detect platform and download latest binary
+curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | \
+  grep "browser_download_url.*$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m)" | \
+  cut -d '"' -f 4 | \
+  xargs -I {} curl -L -o gitlab-ci-lint {}
+
+# Make executable and install to ~/.local/bin
+chmod +x gitlab-ci-lint
+mkdir -p ~/.local/bin
+mv gitlab-ci-lint ~/.local/bin/
+
+# Add ~/.local/bin to PATH if not already present
+if [[ :$PATH: != *":$HOME/.local/bin:"* ]]; then
+  echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc  # or ~/.zshrc
+  export PATH=$HOME/.local/bin:$PATH
+fi
+
+# Verify installation
+gitlab-ci-lint version
+```
+
+#### Linux (AMD64)
+
+```bash
+# Download latest binary
+curl -L -o gitlab-ci-lint https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-linux-amd64
+
+# Install
+chmod +x gitlab-ci-lint
+sudo mv gitlab-ci-lint /usr/local/bin/
+
+# Verify
+gitlab-ci-lint version
+```
+
+#### macOS (Apple Silicon)
+
+```bash
+# Download latest binary
+curl -L -o gitlab-ci-lint https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-darwin-arm64
+
+# Install
+chmod +x gitlab-ci-lint
+sudo mv gitlab-ci-lint /usr/local/bin/
+
+# Verify
+gitlab-ci-lint version
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Download latest binary
+Invoke-WebRequest -Uri "https://github.com/InkyQuill/gitlab-ci-lint/releases/latest/download/gitlab-ci-lint-windows-amd64.exe" -OutFile "gitlab-ci-lint.exe"
+
+# Create directory and move binary
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\bin"
+Move-Item -Path gitlab-ci-lint.exe -Destination "$env:USERPROFILE\bin\"
+
+# Add to PATH (if not already present)
+$binPath = "$env:USERPROFILE\bin"
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($currentPath -notlike "*$binPath*") {
+  [Environment]::SetEnvironmentVariable("Path", "$currentPath;$binPath", "User")
+  $env:Path += ";$binPath"
+}
+
+# Verify installation (restart terminal first)
+gitlab-ci-lint version
+```
 
 ### Build from Source
 
+If you have Go 1.24 or later installed:
+
 ```bash
+# Clone the repository
 git clone https://github.com/InkyQuill/gitlab-ci-lint.git
 cd gitlab-ci-lint
-make build && make install
+
+# Build for your current platform
+make build
+
+# Install to GOPATH/bin (or ~/.local/bin)
+make install
+
+# The binary will be available as:
+# - $(go env GOPATH)/bin/gitlab-ci-lint
+# - or: ./build/gitlab-ci-lint
+```
+
+#### Build for Specific Platform
+
+```bash
+# Linux AMD64
+GOOS=linux GOARCH=amd64 go build -o gitlab-ci-lint cmd/gitlab-ci-lint/main.go
+
+# macOS ARM64 (Apple Silicon)
+GOOS=darwin GOARCH=arm64 go build -o gitlab-ci-lint cmd/gitlab-ci-lint/main.go
+
+# Windows AMD64
+GOOS=windows GOARCH=amd64 go build -o gitlab-ci-lint.exe cmd/gitlab-ci-lint/main.go
 ```
 
 ### Go Install
 
+If you have Go installed:
+
 ```bash
 go install github.com/InkyQuill/gitlab-ci-lint/cmd/gitlab-ci-lint@latest
+
+# The binary will be installed to $(go env GOPATH)/bin (usually ~/go/bin/)
+# Make sure $GOPATH/bin is in your PATH
+export PATH=$PATH:$(go env GOPATH)/bin
 ```
+
+## Configuration
+
+### Quick Setup (Recommended)
+
+The interactive setup wizard will guide you through configuration:
+
+```bash
+gitlab-ci-lint setup
+```
+
+The wizard will help you configure:
+- GitLab instance URL (e.g., `https://gitlab.com` or your self-hosted instance)
+- Personal access token for API validation
+- Default project (optional)
+- Output preferences
+
+Configuration is saved to `~/.tools-config/.gitlab-ci-lint/config.yaml`
+
+### Environment Variables
+
+You can configure gitlab-ci-lint using environment variables (prefix `GCL_`):
+
+```bash
+# GitLab instance URL
+export GCL_INSTANCE=https://gitlab.example.com
+
+# Personal access token (requires 'api' scope)
+export GCL_TOKEN=glpat-xxxxxxxxxxxxxxx
+
+# Default project (for project-specific validation)
+export GCL_PROJECT=mygroup/myproject
+
+# Output format
+export GCL_OUTPUT=json
+
+# Skip API validation (local YAML syntax only)
+export GCL_SKIP_API=true
+
+# Verbose output
+export GCL_VERBOSE=true
+
+# Disable colored output
+export GCL_COLOR=never
+```
+
+Add these to your `~/.bashrc`, `~/.zshrc`, or shell profile to make them persistent.
+
+### Configuration File
+
+Configuration is loaded from multiple sources (low to high priority):
+
+1. **Defaults** - Built-in sensible defaults
+2. **Config file** - `~/.tools-config/.gitlab-ci-lint/config.yaml`
+3. **Environment variables** - Prefix `GCL_`
+4. **CLI flags** - Command-line arguments
+
+#### Config File Example
+
+```yaml
+# ~/.tools-config/.gitlab-ci-lint/config.yaml
+gitlab:
+  instance: "https://gitlab.com"  # Your GitLab instance URL
+  timeout: 30s                    # API request timeout
+
+auth:
+  token: "glpat-xxxxxxxxxxxx"     # Or use GCL_TOKEN environment variable
+  netrc: false                    # Use .netrc for credentials
+
+validation:
+  skip_api: false                 # Skip API validation (local only)
+  strict: true                    # Use strict YAML parsing
+  project: "group/project"        # Default project ID or path
+
+output:
+  format: "text"                  # Output format: text|json|yaml
+  verbose: false                  # Verbose output
+  color: "auto"                   # Color output: auto|always|never
+
+files:
+  max_depth: 5                    # Max depth for directory scanning
+  search_parent: true             # Search parent directories
+  ignore_patterns:                # Patterns to ignore during discovery
+    - ".git"
+    - "node_modules"
+    - "vendor"
+    - "build"
+    - "dist"
+    - "*.tar.gz"
+```
+
+### Getting Your GitLab Token
+
+For API validation, you need a GitLab personal access token:
+
+1. Go to your GitLab instance
+2. Navigate to **User Settings** → **Access Tokens**
+3. Create a new token with `api` scope
+4. Use the token via:
+   - Environment variable: `export GCL_TOKEN=glpat-xxxxx`
+   - Setup wizard: `gitlab-ci-lint setup`
+   - Config file: Add `auth.token` field
+   - CLI flag: `gitlab-ci-lint --token glpat-xxxxx`
 
 ## Documentation
 

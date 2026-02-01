@@ -4,7 +4,7 @@ This guide covers various installation methods for GitLab CI Linter.
 
 ## Prerequisites
 
-- Go 1.21+ (if building from source)
+- Go 1.24+ (if building from source)
 - Git (if building from source)
 
 ## Installation Methods
@@ -209,7 +209,7 @@ chmod +x gitlab-ci-lint
 If building from source fails:
 
 ```bash
-# Ensure you have Go 1.21+
+# Ensure you have Go 1.24+
 go version
 
 # Update dependencies

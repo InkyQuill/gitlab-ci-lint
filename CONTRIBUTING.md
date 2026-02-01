@@ -13,9 +13,10 @@ Thank you for your interest in contributing to GitLab CI Lint! This document pro
 
 ### Prerequisites
 
-- Go 1.25.6 or later
+- Go 1.24 or later
 - Make (for build automation)
 - Git
+- golangci-lint (for linting, optional but recommended)
 
 ### Development Setup
 
@@ -212,19 +213,25 @@ Include:
 ```
 gitlab-ci-lint/
 ├── cmd/
-│   ├── gitlab-ci-lint/     # Main CLI command
-│   └── setup/              # Setup wizard
+│   └── gitlab-ci-lint/     # Main CLI command (with integrated setup)
 ├── internal/
 │   ├── config/             # Configuration management
+│   ├── discover/           # File discovery system
+│   ├── exit/               # Exit code constants
 │   ├── gitlab/             # GitLab API client
 │   ├── output/             # Output formatting
-│   ├── setup/              # Setup validation
-│   └── validator/          # Validation logic
+│   ├── setup/              # Setup validation utilities
+│   └── validator/          # Validation logic (local + API)
 ├── pkg/
 │   └── version/            # Version information
 ├── docs/                   # Documentation
-├── .github/workflows/      # CI/CD workflows
-└── Makefile                # Build targets
+├── tests/                  # Integration tests
+├── .github/                # GitHub templates and workflows
+│   ├── workflows/          # CI/CD workflows
+│   ├── ISSUE_TEMPLATE/     # Issue templates
+│   └── PULL_REQUEST_TEMPLATE.md
+├── Makefile                # Build targets
+└── README.md               # Project README
 ```
 
 ## Adding Features
@@ -310,11 +317,14 @@ Contributors are recognized in:
 ## Resources
 
 - [Go Documentation](https://golang.org/doc/)
-- [Effective Go](https://golang.org/doc/effective_go)
+- [Effective Go](https://golang.org/doc/effective_go.html)
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
 - [Project Specification](SPEC.md)
 - [Architecture Overview](docs/architecture/overview.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [Support Guide](SUPPORT.md)
 
 ## Getting Help
 
@@ -326,3 +336,46 @@ Contributors are recognized in:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+## Developer Certificate of Origin (DCO)
+
+We require that all contributors sign off on their commits using the `-s` flag:
+
+```bash
+git commit -s -m "feat: add new feature"
+```
+
+This certifies that you wrote the code or have the right to submit it.
+
+## AI-Assisted Development
+
+This project welcomes AI-assisted development! If you use AI tools to help contribute:
+
+**Disclose AI Usage**:
+- Mention which AI tools you used in your PR description
+- Examples: Claude Code (Anthropic), GitHub Copilot, Z.ai (GLM), ChatGPT, etc.
+- Specify what tasks the AI helped with
+
+**Quality Standards**:
+- AI-generated code must still follow all project guidelines
+- You are responsible for reviewing and testing AI-generated code
+- Security-sensitive code requires extra scrutiny
+
+**Project AI Usage**:
+This project was developed with assistance from:
+- **Claude Code** (Anthropic) - AI-powered development assistant for code architecture, testing, and documentation
+- **Z.ai** (GLM 4.7) - AI code analysis and generation for implementation details and optimization
+
+These tools helped ensure:
+- High code quality and consistency
+- Comprehensive test coverage
+- Clear, professional documentation
+- Best practices in Go development and CI/CD
+
+**Example Disclosure**:
+```
+I used AI assistance in this PR:
+- Claude Code for test generation and refactoring
+- Z.ai for performance optimization suggestions
+I have reviewed all changes and tested them locally.
+```
