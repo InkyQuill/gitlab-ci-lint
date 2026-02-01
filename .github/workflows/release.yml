@@ -30,14 +30,6 @@ jobs:
             @semantic-release/changelog@6 \
             @semantic-release/github@9
 
-      - name: Build binaries for all platforms
-        run: make build-all
-
-      - name: List build artifacts
-        run: |
-          echo "Build artifacts:"
-          ls -lh build/
-
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,12 +39,30 @@ jobs:
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: npx semantic-release
 
+      - name: Get version from git tag
+        id: get_version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
+
+      - name: Build binaries for all platforms
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+          COMMIT: ${{ github.sha }}
+          BUILD_DATE: ${{ github.event.head_commit.timestamp }}
+        run: |
+          make build-all
+          echo "Build artifacts:"
+          ls -lh build/
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/gitlab-ci-lint-*
-            build/gitlab-ci-lint-setup-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
