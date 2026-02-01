@@ -69,11 +69,12 @@
 
 ### Interactive Setup
 - [x] Phase 2: Setup command implementation
-  - [x] `cmd/setup/main.go` - Interactive setup CLI
+  - [x] `cmd/gitlab-ci-lint/main.go` - Integrated setup command
   - [x] `internal/config/writer.go` - Safe config writing
   - [x] `internal/setup/validator.go` - Token validation
-  - [x] Add setup command to main.go
+  - [x] Add setup command to main binary
   - [x] Add survey/v2 dependency
+  - [x] Remove separate setup binary
 
 ### Bug Fixes
 - [x] Fix config directory path (~/.tools-config/)

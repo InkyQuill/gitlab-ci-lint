@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	mainBinary  string
-	setupBinary string
+	mainBinary string
 )
 
 func TestMain(m *testing.M) {
@@ -48,31 +47,21 @@ func buildBinaries() error {
 		return err
 	}
 
-	// Set binary paths as absolute paths
+	// Set binary path as absolute path
 	buildDir := filepath.Join(root, "build")
 	mainBinary = filepath.Join(buildDir, "gitlab-ci-lint")
-	setupBinary = filepath.Join(buildDir, "gitlab-ci-lint-setup")
 
 	// Create build directory
 	if err := os.MkdirAll(buildDir, 0755); err != nil {
 		return err
 	}
 
-	// Build main binary
+	// Build main binary (with integrated setup)
 	mainCmd := exec.Command("go", "build", "-o", mainBinary, "./cmd/gitlab-ci-lint")
 	mainCmd.Dir = root
 	mainCmd.Stdout = os.Stdout
 	mainCmd.Stderr = os.Stderr
-	if err := mainCmd.Run(); err != nil {
-		return err
-	}
-
-	// Build setup binary
-	setupCmd := exec.Command("go", "build", "-o", setupBinary, "./cmd/setup")
-	setupCmd.Dir = root
-	setupCmd.Stdout = os.Stdout
-	setupCmd.Stderr = os.Stderr
-	return setupCmd.Run()
+	return mainCmd.Run()
 }
 
 // skipInCI skips interactive tests in CI environment
@@ -100,7 +89,7 @@ func TestSetupCommand_CreatesConfigFile(t *testing.T) {
 		"no\n" // Test configuration
 
 	// Run setup command with environment variable for config path
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -176,7 +165,7 @@ output:
 		"yes\n" + // Save
 		"no\n" // Test
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -230,7 +219,7 @@ func TestSetupCommand_OverwriteExistingConfig(t *testing.T) {
 		"yes\n" + // Save
 		"no\n" // Test
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -276,7 +265,7 @@ func TestSetupCommand_CancelSetup(t *testing.T) {
 	// Input: Cancel
 	input := "Cancel\n"
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -315,7 +304,7 @@ func TestSetupCommand_RejectSummary(t *testing.T) {
 		"no\n" + // Verbose
 		"no\n" // Don't save
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -358,7 +347,7 @@ func TestSetupCommand_ForceFlag(t *testing.T) {
 		"yes\n" + // Save
 		"no\n" // Test
 
-	cmd := exec.Command(setupBinary, "--force")
+	cmd := exec.Command(mainBinary, "setup", "--force")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -374,7 +363,7 @@ func TestSetupCommand_ForceFlag(t *testing.T) {
 }
 
 func TestSetupCommand_HelpFlag(t *testing.T) {
-	cmd := exec.Command(setupBinary, "--help")
+	cmd := exec.Command(mainBinary, "setup", "--help")
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -406,7 +395,7 @@ func TestSetupCommand_OutputContainsSummary(t *testing.T) {
 		"yes\n" + // Save
 		"no\n" // Test
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -456,7 +445,7 @@ func TestSetupCommand_CreatesDirectory(t *testing.T) {
 		"yes\n" + // Save
 		"no\n" // Test
 
-	cmd := exec.Command(setupBinary)
+	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 	cmd.Stdin = strings.NewReader(input)
 
@@ -504,7 +493,7 @@ func BenchmarkSetupCommand(b *testing.B) {
 			"yes\n" + // Save
 			"no\n" // Test
 
-		cmd := exec.Command(setupBinary)
+		cmd := exec.Command(mainBinary, "setup")
 		cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+iterConfigDir)
 		cmd.Stdin = strings.NewReader(input)
 
@@ -546,7 +535,7 @@ func TestSetupCommand_Concurrent(t *testing.T) {
 				"yes\n" + // Save
 				"no\n" // Test
 
-			cmd := exec.Command(setupBinary)
+			cmd := exec.Command(mainBinary, "setup")
 			cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
 			cmd.Stdin = strings.NewReader(input)
 

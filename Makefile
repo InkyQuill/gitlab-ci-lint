@@ -1,11 +1,8 @@
 # Build variables
 BINARY_NAME=gitlab-ci-lint
-SETUP_BINARY_NAME=gitlab-ci-lint-setup
 BUILD_DIR=build
 CMD_DIR=cmd/gitlab-ci-lint
-SETUP_CMD_DIR=cmd/setup
 MAIN_FILE=$(CMD_DIR)/main.go
-SETUP_MAIN_FILE=$(SETUP_CMD_DIR)/main.go
 
 # Version variables (injected at build time)
 VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -30,8 +27,7 @@ build: clean
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
 	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
-	go build $(LDFLAGS) -o $(BUILD_DIR)/$(SETUP_BINARY_NAME) $(SETUP_MAIN_FILE)
-	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME), $(BUILD_DIR)/$(SETUP_BINARY_NAME)"
+	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)"
 
 # Build for all platforms
 .PHONY: build-all
@@ -43,9 +39,6 @@ build-all: clean
 		GOOS=$(word 1,$(subst /, ,$(PLATFORM))) \
 		GOARCH=$(word 2,$(subst /, ,$(PLATFORM))) \
 		go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-$(word 1,$(subst /, ,$(PLATFORM)))-$(word 2,$(subst /, ,$(PLATFORM)))$(if $(filter windows%,$(PLATFORM)),.exe,) $(MAIN_FILE);\
-		GOOS=$(word 1,$(subst /, ,$(PLATFORM))) \
-		GOARCH=$(word 2,$(subst /, ,$(PLATFORM))) \
-		go build $(LDFLAGS) -o $(BUILD_DIR)/$(SETUP_BINARY_NAME)-$(word 1,$(subst /, ,$(PLATFORM)))-$(word 2,$(subst /, ,$(PLATFORM)))$(if $(filter windows%,$(PLATFORM)),.exe,) $(SETUP_MAIN_FILE);\
 	)
 	@echo "Build complete for all platforms"
 
@@ -119,8 +112,7 @@ tidy:
 install:
 	@echo "Installing $(BINARY_NAME)..."
 	go install $(LDFLAGS) $(MAIN_FILE)
-	go install $(LDFLAGS) $(SETUP_MAIN_FILE)
-	@echo "Installed to $(shell go env GOPATH)/bin/$(BINARY_NAME) and $(shell go env GOPATH)/bin/$(SETUP_BINARY_NAME)"
+	@echo "Installed to $(shell go env GOPATH)/bin/$(BINARY_NAME)"
 
 # Clean build artifacts
 .PHONY: clean

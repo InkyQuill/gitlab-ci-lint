@@ -25,7 +25,8 @@ Comprehensive technical specification including:
 
 ### Files Created:
 
-1. **`cmd/setup/main.go`** (314 lines)
+1. **Integrated into `cmd/gitlab-ci-lint/main.go`**
+   - Setup command now integrated into main binary
    - Interactive setup wizard using survey/v2
    - GitLab instance configuration with detection
    - Token validation with real-time feedback
@@ -193,7 +194,7 @@ Comprehensive technical specification including:
      - Build binaries for all platforms
      - Run semantic-release
      - Create GitHub releases
-     - Upload release assets (gitlab-ci-lint-*, gitlab-ci-lint-setup-*)
+     - Upload release assets (gitlab-ci-lint-*)
    - Automated versioning and changelog generation
 
 ---
@@ -295,7 +296,7 @@ make fmt                # Format code
 make tidy               # Tidy dependencies
 
 # Setup
-go run cmd/setup/main.go  # Interactive setup wizard
+./build/gitlab-ci-lint setup  # Interactive setup wizard
 
 # Run
 ./build/gitlab-ci-lint --help
