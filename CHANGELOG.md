@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.2.0...v0.2.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* remove incorrect npm package labels from release config ([0d8a52c](https://github.com/InkyQuill/gitlab-ci-lint/commit/0d8a52cf41557aa1918ece16fbca260a7aa1bb69))
+
 # [0.2.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v0.1.1...v0.2.0) (2026-02-01)
 
 
