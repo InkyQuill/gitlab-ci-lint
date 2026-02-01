@@ -28,7 +28,7 @@ in two stages:
 1. Local YAML syntax validation
 2. GitLab API validation (can be disabled with --skip-api)`,
 		Args: cobra.ExactArgs(1),
-		Run: runLint,
+		Run:  runLint,
 	}
 
 	// Configuration flags
@@ -137,9 +137,6 @@ func runLint(cmd *cobra.Command, args []string) {
 		// Normalize instance URL
 		instance := gitlab.NormalizeInstanceURL(cfg.GitLab.Instance)
 
-		// Create GitLab client
-		client := gitlab.NewClient(instance, cfg.Auth.Token, cfg.GitLab.Timeout)
-
 		// Get token from config or environment
 		token := cfg.Auth.Token
 		if token == "" && cfg.Auth.Netrc {
@@ -149,8 +146,8 @@ func runLint(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		// Update client with token
-		client = gitlab.NewClient(instance, token, cfg.GitLab.Timeout)
+		// Create GitLab client
+		client := gitlab.NewClient(instance, token, cfg.GitLab.Timeout)
 
 		// Validate token (if provided)
 		if token != "" {

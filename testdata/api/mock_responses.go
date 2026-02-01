@@ -39,7 +39,7 @@ func GetLintValidResponse() gitlab.LintResponse {
 // GetLintInvalidResponse returns an invalid lint response
 func GetLintInvalidResponse() gitlab.LintResponse {
 	return gitlab.LintResponse{
-		Valid:    false,
+		Valid: false,
 		Errors: []gitlab.APIError{
 			{Message: "jobs:test:script config should be an array of strings"},
 			{Message: "jobs:build stage is not defined in stages"},

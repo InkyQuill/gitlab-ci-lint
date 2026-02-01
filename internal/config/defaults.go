@@ -19,9 +19,9 @@ func GetDefaults() Config {
 			Project: "",
 		},
 		Output: OutputConfig{
-			Format: "text",
+			Format:  "text",
 			Verbose: false,
-			Color: "auto",
+			Color:   "auto",
 		},
 	}
 }

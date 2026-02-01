@@ -32,7 +32,7 @@ func WriteConfig(path string, cfg *Config) error {
 	// Rename temporary file to actual path (atomic on POSIX systems)
 	if err := os.Rename(tempPath, path); err != nil {
 		// Clean up temp file if rename fails
-		os.Remove(tempPath)
+		_ = os.Remove(tempPath)
 		return fmt.Errorf("failed to save config file: %w", err)
 	}
 

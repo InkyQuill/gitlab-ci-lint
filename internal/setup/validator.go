@@ -61,7 +61,7 @@ func ValidateToken(instance, token string) (*TokenValidationResult, error) {
 			Error: fmt.Sprintf("Failed to connect to instance: %v", err),
 		}, nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Check status code
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -128,7 +128,7 @@ func DetectInstanceType(instance string) (*InstanceInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to instance: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	info := &InstanceInfo{
 		URL: instanceURL,
@@ -187,7 +187,7 @@ func TestConnection(ctx context.Context, instance string) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)

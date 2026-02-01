@@ -9,10 +9,10 @@ type LintRequest struct {
 
 // LintResponse represents the response from the GitLab CI lint API
 type LintResponse struct {
-	Valid      bool          `json:"valid"`
-	Errors     []APIError    `json:"errors,omitempty"`
-	Warnings   []string      `json:"warnings,omitempty"`
-	MergedYaml string        `json:"merged_yaml,omitempty"`
+	Valid      bool       `json:"valid"`
+	Errors     []APIError `json:"errors,omitempty"`
+	Warnings   []string   `json:"warnings,omitempty"`
+	MergedYaml string     `json:"merged_yaml,omitempty"`
 }
 
 // APIError represents an error from the GitLab API

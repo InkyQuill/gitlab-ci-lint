@@ -17,17 +17,17 @@ type Loader struct {
 
 // ConfigFlags represents CLI flag values
 type ConfigFlags struct {
-	ConfigFile  string
-	Token       string
-	Netrc       bool
-	Instance    string
-	Timeout     string
-	Project     string
-	SkipAPI     bool
-	Strict      bool
-	Output      string
-	Verbose     bool
-	Color       string
+	ConfigFile string
+	Token      string
+	Netrc      bool
+	Instance   string
+	Timeout    string
+	Project    string
+	SkipAPI    bool
+	Strict     bool
+	Output     string
+	Verbose    bool
+	Color      string
 }
 
 // NewLoader creates a new configuration loader

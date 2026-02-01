@@ -2,10 +2,10 @@ package validator
 
 // Result represents the result of a validation operation
 type Result struct {
-	Valid  bool     `yaml:"valid" json:"valid"`
-	Errors []Error  `yaml:"errors,omitempty" json:"errors,omitempty"`
+	Valid    bool      `yaml:"valid" json:"valid"`
+	Errors   []Error   `yaml:"errors,omitempty" json:"errors,omitempty"`
 	Warnings []Warning `yaml:"warnings,omitempty" json:"warnings,omitempty"`
-	Stage  string   `yaml:"stage" json:"stage"` // "local" or "api"
+	Stage    string    `yaml:"stage" json:"stage"` // "local" or "api"
 }
 
 // Error represents a validation error

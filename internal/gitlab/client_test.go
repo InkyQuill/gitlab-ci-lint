@@ -79,11 +79,11 @@ func TestNewClient(t *testing.T) {
 
 	client := NewClient(instance, token, timeout)
 
-	if client == nil {
+	if client == nil { //nolint:staticcheck,SA5011
 		t.Fatal("Expected non-nil client")
 	}
 
-	if client.instance != instance {
+	if client.instance != instance { //nolint:staticcheck,SA5011
 		t.Errorf("Expected instance '%s', got '%s'", instance, client.instance)
 	}
 
@@ -113,7 +113,7 @@ func TestClient_ValidateToken_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"username": "testuser", "name": "Test User"}`))
+		_, _ = w.Write([]byte(`{"username": "testuser", "name": "Test User"}`))
 	}))
 	defer server.Close()
 
@@ -128,7 +128,7 @@ func TestClient_ValidateToken_Success(t *testing.T) {
 func TestClient_ValidateToken_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"message": "401 Unauthorized"}`))
+		_, _ = w.Write([]byte(`{"message": "401 Unauthorized"}`))
 	}))
 	defer server.Close()
 
@@ -153,7 +153,7 @@ func TestClient_ValidateToken_NoToken(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"username": "public"}`))
+		_, _ = w.Write([]byte(`{"username": "public"}`))
 	}))
 	defer server.Close()
 
@@ -256,7 +256,7 @@ func TestClient_Lint_Success(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"valid": true, "errors": [], "warnings": []}`))
+		_, _ = w.Write([]byte(`{"valid": true, "errors": [], "warnings": []}`))
 	}))
 	defer server.Close()
 
@@ -282,7 +282,7 @@ func TestClient_Lint_WithErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"valid": false,
 			"errors": [
 				{"message": "jobs config should contain at least one visible job"}
@@ -318,7 +318,7 @@ func TestClient_Lint_WithErrors(t *testing.T) {
 func TestClient_Lint_HTTPError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`Internal server error`))
+		_, _ = w.Write([]byte(`Internal server error`))
 	}))
 	defer server.Close()
 
@@ -383,7 +383,7 @@ func TestClient_Lint_WithProject(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"valid": true, "errors": [], "warnings": []}`))
+		_, _ = w.Write([]byte(`{"valid": true, "errors": [], "warnings": []}`))
 	}))
 	defer server.Close()
 
