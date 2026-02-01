@@ -15,12 +15,12 @@ func TestGetDefaults(t *testing.T) {
 		t.Errorf("Expected default instance to be 'https://gitlab.com', got '%s'", defaults.GitLab.Instance)
 	}
 
-	if defaults.GitLab.Timeout != 30*time.Second {
+	if defaults.GitLab.Timeout == nil || *defaults.GitLab.Timeout != 30*time.Second {
 		t.Errorf("Expected default timeout to be 30s, got %v", defaults.GitLab.Timeout)
 	}
 
-	if defaults.Validation.Strict != true {
-		t.Errorf("Expected default strict to be true")
+	if defaults.Validation.Strict != false {
+		t.Errorf("Expected default strict to be false")
 	}
 
 	if defaults.Output.Format != "text" {
@@ -182,7 +182,7 @@ output:
 		t.Errorf("Expected instance from config file, got '%s'", cfg.GitLab.Instance)
 	}
 
-	if cfg.GitLab.Timeout != 60*time.Second {
+	if cfg.GitLab.Timeout == nil || *cfg.GitLab.Timeout != 60*time.Second {
 		t.Errorf("Expected timeout from config file, got %v", cfg.GitLab.Timeout)
 	}
 
@@ -313,10 +313,11 @@ func TestLoadEnvVars_BooleanParsing(t *testing.T) {
 }
 
 func TestMergeConfigs_Precedence(t *testing.T) {
+	baseTimeout := 10 * time.Second
 	base := Config{
 		GitLab: GitLabConfig{
 			Instance: "base-instance",
-			Timeout:  10 * time.Second,
+			Timeout:  &baseTimeout,
 		},
 		Auth: AuthConfig{
 			Token: "base-token",
@@ -363,7 +364,7 @@ func TestMergeConfigs_Precedence(t *testing.T) {
 	}
 
 	// Check that base values are preserved where not overridden
-	if result.GitLab.Timeout != 10*time.Second {
+	if result.GitLab.Timeout == nil || *result.GitLab.Timeout != 10*time.Second {
 		t.Errorf("Expected base timeout to be preserved, got %v", result.GitLab.Timeout)
 	}
 

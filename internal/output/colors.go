@@ -28,7 +28,8 @@ func NewColorizer(colorSetting string) *Colorizer {
 		enabled = true
 	case "auto":
 		// Detect if output is a terminal
-		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+		fileInfo, err := os.Stdout.Stat()
+		if err == nil && (fileInfo.Mode() & os.ModeCharDevice) != 0 {
 			enabled = true
 		}
 	case "never":

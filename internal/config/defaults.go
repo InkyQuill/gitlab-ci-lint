@@ -4,10 +4,11 @@ import "time"
 
 // GetDefaults returns the default configuration values
 func GetDefaults() Config {
+	defaultTimeout := 30 * time.Second
 	return Config{
 		GitLab: GitLabConfig{
 			Instance: "https://gitlab.com",
-			Timeout:  30 * time.Second,
+			Timeout:  &defaultTimeout,
 		},
 		Auth: AuthConfig{
 			Token: "",
@@ -15,7 +16,7 @@ func GetDefaults() Config {
 		},
 		Validation: ValidationConfig{
 			SkipAPI: false,
-			Strict:  true,
+			Strict:  false,
 			Project: "",
 		},
 		Output: OutputConfig{

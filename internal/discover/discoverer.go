@@ -124,6 +124,9 @@ func (d *Discoverer) FindInDirectoryTree(root string) (*FileDiscovery, error) {
 		return nil, fmt.Errorf("not a directory: %s", root)
 	}
 
+	// Clean root path for consistent depth calculation
+	root = filepath.Clean(root)
+
 	// Walk the directory tree
 	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -133,6 +136,19 @@ func (d *Discoverer) FindInDirectoryTree(root string) (*FileDiscovery, error) {
 				return filepath.SkipDir
 			}
 			return err
+		}
+
+		// Check depth limit by counting path separators
+		relPath, err := filepath.Rel(root, path)
+		if err == nil {
+			depth := 0
+			if relPath != "." {
+				depth = len(strings.Split(filepath.ToSlash(relPath), "/"))
+			}
+			// For directories, check if we've exceeded maxDepth
+			if entry.IsDir() && depth > d.maxDepth {
+				return filepath.SkipDir
+			}
 		}
 
 		// Skip directories and ignored patterns

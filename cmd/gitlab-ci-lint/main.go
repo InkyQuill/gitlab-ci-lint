@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/InkyQuill/gitlab-ci-lint/internal/config"
@@ -21,9 +22,17 @@ import (
 )
 
 var (
-	flags       = &config.ConfigFlags{}
+	flags      = &config.ConfigFlags{}
 	setupForce bool
 )
+
+// GitLabClient holds the client and its configuration
+type GitLabClient struct {
+	client    *gitlab.Client
+	token     string
+	instance  string
+	validated bool
+}
 
 func main() {
 	rootCmd := &cobra.Command{
@@ -90,6 +99,50 @@ File discovery (if no file specified):
 	}
 }
 
+// prepareGitLabClient prepares and validates a GitLab client
+func prepareGitLabClient(ctx context.Context, cfg *config.Config, formatter *output.Formatter) (*GitLabClient, error) {
+	if cfg.Validation.SkipAPI {
+		return nil, nil
+	}
+
+	// Normalize instance URL
+	instance := gitlab.NormalizeInstanceURL(cfg.GitLab.Instance)
+
+	// Get token from config or netrc
+	token := cfg.Auth.Token
+	if token == "" && cfg.Auth.Netrc {
+		var err error
+		token, err = gitlab.ExtractTokenFromNetrc(instance)
+		if err != nil && cfg.Output.Verbose {
+			formatter.FormatMessage(os.Stderr, "warning", fmt.Sprintf("Failed to read .netrc: %v", err))
+		}
+	}
+
+	// Create client (use timeout safely)
+	timeout := 30 * time.Second
+	if cfg.GitLab.Timeout != nil {
+		timeout = *cfg.GitLab.Timeout
+	}
+	client := gitlab.NewClient(instance, token, timeout)
+
+	// Validate token (if provided)
+	if token != "" {
+		if cfg.Output.Verbose {
+			formatter.FormatMessage(os.Stdout, "info", "Validating GitLab token...")
+		}
+		if err := client.ValidateToken(ctx); err != nil {
+			return nil, fmt.Errorf("token validation failed: %w", err)
+		}
+	}
+
+	return &GitLabClient{
+		client:    client,
+		token:     token,
+		instance:  instance,
+		validated: token != "",
+	}, nil
+}
+
 func runLint(cmd *cobra.Command, args []string) {
 	// Handle stdin input
 	if len(args) == 1 && args[0] == "-" {
@@ -107,6 +160,20 @@ func runLint(cmd *cobra.Command, args []string) {
 
 	// Create formatter
 	formatter := output.NewFormatter(cfg.Output.Color, cfg.Output.Verbose)
+
+	// Display configuration warnings if verbose
+	if len(loader.GetWarnings()) > 0 && cfg.Output.Verbose {
+		for _, warn := range loader.GetWarnings() {
+			formatter.FormatMessage(os.Stderr, "warning", warn)
+		}
+	}
+
+	// Prepare GitLab client ONCE (before file processing)
+	gitlabClient, err := prepareGitLabClient(cmd.Context(), cfg, formatter)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to prepare GitLab client: %v\n", err)
+		os.Exit(exit.ExitGeneralError)
+	}
 
 	// Discover files to validate
 	discoverer := discover.NewDiscoverer()
@@ -134,7 +201,7 @@ func runLint(cmd *cobra.Command, args []string) {
 
 	// Process each file
 	for _, filePath := range files {
-		fileResult := validateFile(cmd, filePath, cfg, formatter)
+		fileResult := validateFile(cmd, filePath, cfg, formatter, gitlabClient)
 		if fileResult != nil {
 			allResults = append(allResults, *fileResult)
 			if !fileResult.Valid {
@@ -168,6 +235,13 @@ func handleStdinInput(cmd *cobra.Command) {
 	// Create formatter
 	formatter := output.NewFormatter(cfg.Output.Color, cfg.Output.Verbose)
 
+	// Display configuration warnings if verbose
+	if len(loader.GetWarnings()) > 0 && cfg.Output.Verbose {
+		for _, warn := range loader.GetWarnings() {
+			formatter.FormatMessage(os.Stderr, "warning", warn)
+		}
+	}
+
 	// Read from stdin
 	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
@@ -190,34 +264,15 @@ func handleStdinInput(cmd *cobra.Command) {
 	results = append(results, localResult)
 
 	if !cfg.Validation.SkipAPI {
-		// Normalize instance URL
-		instance := gitlab.NormalizeInstanceURL(cfg.GitLab.Instance)
-
-		// Get token from config or environment
-		token := cfg.Auth.Token
-		if token == "" && cfg.Auth.Netrc {
-			token, err = gitlab.ExtractTokenFromNetrc(instance)
-			if err != nil && cfg.Output.Verbose {
-				formatter.FormatMessage(os.Stdout, "warning", fmt.Sprintf("Failed to read .netrc: %v", err))
-			}
-		}
-
-		// Create GitLab client
-		client := gitlab.NewClient(instance, token, cfg.GitLab.Timeout)
-
-		// Validate token (if provided)
-		if token != "" {
-			if cfg.Output.Verbose {
-				formatter.FormatMessage(os.Stdout, "info", "Validating GitLab token...")
-			}
-			if err := client.ValidateToken(cmd.Context()); err != nil {
-				fmt.Fprintf(os.Stderr, "Token validation failed: %v\n", err)
-				os.Exit(exit.ExitGeneralError)
-			}
+		// Prepare GitLab client
+		gitlabClient, err := prepareGitLabClient(cmd.Context(), cfg, formatter)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to prepare GitLab client: %v\n", err)
+			os.Exit(exit.ExitGeneralError)
 		}
 
 		// Run API validation
-		apiValidator := validator.NewAPIValidator(client, cfg.Validation.Project)
+		apiValidator := validator.NewAPIValidator(gitlabClient.client, cfg.Validation.Project)
 		apiResult := apiValidator.Validate(content)
 		results = append(results, apiResult)
 
@@ -287,10 +342,10 @@ func discoverFiles(discoverer *discover.Discoverer, cfg *config.Config, args []s
 	}
 
 	// Print any discovery errors in verbose mode
-	if cfg.Output.Verbose {
+	if cfg.Output.Verbose && len(allErrors) > 0 {
+		errorFormatter := output.NewFormatter(cfg.Output.Color, true)
 		for _, err := range allErrors {
-			formatter := output.NewFormatter(cfg.Output.Color, true)
-			formatter.FormatMessage(os.Stderr, "warning", err.Error())
+			errorFormatter.FormatMessage(os.Stderr, "warning", err.Error())
 		}
 	}
 
@@ -298,7 +353,7 @@ func discoverFiles(discoverer *discover.Discoverer, cfg *config.Config, args []s
 }
 
 // validateFile validates a single file and returns the result
-func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, formatter *output.Formatter) *validator.FileResult {
+func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, formatter *output.Formatter, gitlabClient *GitLabClient) *validator.FileResult {
 	// Read CI config file
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -323,28 +378,9 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 	}
 
 	// Stage 2: API validation (unless skipped)
-	if !cfg.Validation.SkipAPI {
-		// Normalize instance URL
-		instance := gitlab.NormalizeInstanceURL(cfg.GitLab.Instance)
-
-		// Get token from config or environment
-		token := cfg.Auth.Token
-		if token == "" && cfg.Auth.Netrc {
-			var err error
-			token, err = gitlab.ExtractTokenFromNetrc(instance)
-			if err != nil && cfg.Output.Verbose {
-				formatter.FormatMessage(os.Stderr, "warning", fmt.Sprintf("Failed to read .netrc: %v", err))
-			}
-		}
-
-		// Create GitLab client
-		client := gitlab.NewClient(instance, token, cfg.GitLab.Timeout)
-
-		// Validate token (if provided) - only once
-		// Note: Token validation is done in runLint for the first file, skipped for subsequent files
-
-		// Run API validation
-		apiValidator := validator.NewAPIValidator(client, cfg.Validation.Project)
+	if !cfg.Validation.SkipAPI && gitlabClient != nil && gitlabClient.client != nil {
+		// Run API validation using shared client
+		apiValidator := validator.NewAPIValidator(gitlabClient.client, cfg.Validation.Project)
 		apiResult := apiValidator.Validate(content)
 		result.Stages = append(result.Stages, apiResult)
 
@@ -449,16 +485,22 @@ func runSetup(cmd *cobra.Command, args []string) error {
 	}
 
 	if useToken {
-		var token string
-		tokenPrompt := &survey.Password{
-			Message: "Personal access token:",
-			Help:    "Enter your GitLab personal access token (requires 'read_api' scope)",
-		}
-		if err := survey.AskOne(tokenPrompt, &token); err != nil {
-			return err
-		}
+		maxRetries := 3
+		for attempt := 0; attempt < maxRetries; attempt++ {
+			var token string
+			tokenPrompt := &survey.Password{
+				Message: "Personal access token:",
+				Help:    "Enter your GitLab personal access token (requires 'read_api' scope)",
+			}
+			if err := survey.AskOne(tokenPrompt, &token); err != nil {
+				return err
+			}
 
-		if token != "" {
+			if token == "" {
+				// User entered empty token, skip
+				break
+			}
+
 			// Validate token
 			fmt.Print("Validating token...")
 			result, err := setup.ValidateToken(instanceURL, token)
@@ -469,21 +511,28 @@ func runSetup(cmd *cobra.Command, args []string) error {
 			if result.Valid {
 				fmt.Printf("\n  ✓ Token valid! Authenticated as: %s\n", result.Username)
 				cfg.Auth.Token = token
+				break // Success, exit retry loop
 			} else {
 				fmt.Printf("\n  ✗ Token validation failed: %s\n", result.Error)
-				var retry bool
-				retryPrompt := &survey.Confirm{
-					Message: "Would you like to re-enter the token?",
-					Default: true,
-				}
-				if err := survey.AskOne(retryPrompt, &retry); err != nil {
-					return err
-				}
-				if !retry {
-					cfg.Auth.Token = ""
+
+				// Ask user if they want to retry (unless this was the last attempt)
+				if attempt < maxRetries-1 {
+					var retry bool
+					retryPrompt := &survey.Confirm{
+						Message: "Would you like to re-enter the token?",
+						Default: true,
+					}
+					if err := survey.AskOne(retryPrompt, &retry); err != nil {
+						return err
+					}
+					if !retry {
+						cfg.Auth.Token = ""
+						break // User chose not to retry
+					}
+					// Otherwise, continue to next attempt
 				} else {
-					// Retry token input
-					return runSetup(cmd, args)
+					fmt.Println("  Maximum retry attempts reached.")
+					cfg.Auth.Token = ""
 				}
 			}
 		}
@@ -630,6 +679,9 @@ func testConfiguration(cfg *config.Config) error {
 
 // safeTruncate returns the last n characters of a string, or the whole string if shorter
 func safeTruncate(s string, n int) string {
+	if n <= 0 {
+		return ""
+	}
 	if len(s) <= n {
 		return s
 	}

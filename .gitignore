@@ -51,3 +51,6 @@ package-lock.json
 
 # Temporary testing files
 *.log
+
+/gitlab-ci-lint
+
