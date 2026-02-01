@@ -79,11 +79,11 @@ func TestNewClient(t *testing.T) {
 
 	client := NewClient(instance, token, timeout)
 
-	if client == nil { //nolint:staticcheck,SA5011
+	if client == nil { //nolint:staticcheck
 		t.Fatal("Expected non-nil client")
 	}
 
-	if client.instance != instance { //nolint:staticcheck,SA5011
+	if client.instance != instance { //nolint:staticcheck
 		t.Errorf("Expected instance '%s', got '%s'", instance, client.instance)
 	}
 

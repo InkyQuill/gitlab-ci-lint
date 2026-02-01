@@ -83,16 +83,17 @@
 - [x] Phase 4: Semantic release setup
   - [x] `.releaserc.json` - Release configuration
   - [x] `.commitlintrc.json` - Commit message linting
-  - [x] `.versionrc.json` - Changelog formatting
   - [x] `package.json` - Node.js dependencies for semantic-release
   - [x] `.husky/commit-msg` - Commit message hook
   - [x] `.husky/pre-commit` - Pre-commit checks
   - [x] Initialize Husky
+  - [x] Single release workflow: semantic-release then goreleaser in same run (version and binaries in sync)
 
 ### CI/CD
 - [x] Phase 5: GitHub Actions workflows
   - [x] `.github/workflows/ci.yml` - Testing pipeline
-  - [x] `.github/workflows/release.yml` - Release automation
+  - [x] `.github/workflows/semantic-release.yml` - Release on push to main (semantic-release + goreleaser)
+  - [x] `.github/workflows/release.yml` - Release on manual tag push (goreleaser only)
   - [x] Coverage reporting to Codecov
   - [x] Multi-version Go testing (1.23, 1.24)
 

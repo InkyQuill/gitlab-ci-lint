@@ -448,24 +448,22 @@ Releases are automated using [semantic-release](https://github.com/semantic-rele
    # After PR merge to main
    ```
 
-3. **Automatic release**:
-   - semantic-release analyzes commits
-   - Creates git tag (e.g., v1.2.3)
-   - goreleaser builds binaries for all platforms
-   - Artifacts uploaded to GitHub Releases
+3. **Automatic release** (single workflow on push to main):
+   - semantic-release analyzes commits, creates version and tag (e.g. v1.2.3), updates CHANGELOG, creates GitHub release
+   - goreleaser runs in the same run, builds binaries for all platforms and uploads them to that release
+   - Version and binaries always match the same commit
 
 ### Manual Release (Optional)
 
-To create a release manually:
+To create a release without semantic-release (e.g. from a tag):
 
 ```bash
-# Tag and push
+# Tag and push — triggers release.yml, goreleaser builds and uploads binaries
 git tag v1.2.3
 git push origin v1.2.3
-
-# Or use goreleaser directly (local testing)
-make release-snapshot
 ```
+
+For local snapshot (no publish): `make release-snapshot`
 
 ### Building Release Locally
 

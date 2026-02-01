@@ -11,6 +11,7 @@ func TestNewDiscoverer(t *testing.T) {
 
 	if d == nil {
 		t.Fatal("NewDiscoverer returned nil")
+		return
 	}
 
 	if len(d.filenames) == 0 {
@@ -66,7 +67,7 @@ func TestFindInCurrentAndParents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	// Create subdirectory
 	subDir := filepath.Join(tmpDir, "subdir")
@@ -110,7 +111,7 @@ func TestFindInCurrentAndParents_NotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("failed to change to temp directory: %v", err)
