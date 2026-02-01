@@ -11,15 +11,15 @@ import (
 func TestNewFormatter(t *testing.T) {
 	formatter := NewFormatter("auto", false)
 
-	if formatter == nil { //nolint:staticcheck,SA5011
+	if formatter == nil { //nolint:staticcheck
 		t.Fatal("Expected non-nil formatter")
 	}
 
-	if formatter.colorizer == nil { //nolint:staticcheck,SA5011
+	if formatter.colorizer == nil { //nolint:staticcheck
 		t.Error("Expected non-nil colorizer")
 	}
 
-	if formatter.verbose != false { //nolint:staticcheck,SA5011
+	if formatter.verbose != false { //nolint:staticcheck
 		t.Errorf("Expected verbose false, got true")
 	}
 }

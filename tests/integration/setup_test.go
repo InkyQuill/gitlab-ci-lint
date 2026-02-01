@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"bytes"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -434,7 +433,7 @@ func TestSetupCommand_CreatesDirectory(t *testing.T) {
 	configDir := filepath.Join(tempDir, "nested", ".gitlab-ci-lint")
 
 	// Ensure parent directory doesn't exist
-	os.RemoveAll(filepath.Join(tempDir, "nested"))
+	_ = os.RemoveAll(filepath.Join(tempDir, "nested"))
 
 	// Input: Minimal setup
 	input := "https://gitlab.com\n" +
@@ -501,15 +500,6 @@ func BenchmarkSetupCommand(b *testing.B) {
 			b.Fatalf("Setup failed: %v", err)
 		}
 	}
-}
-
-// Helper function to capture both stdout and stderr
-func captureCommand(cmd *exec.Cmd) (string, string, error) {
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return stdout.String(), stderr.String(), err
 }
 
 // TestSetupCommand_Concurrent tests concurrent setup operations

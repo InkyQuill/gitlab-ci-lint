@@ -36,7 +36,7 @@ func TestAPIValidator_Success(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -86,7 +86,7 @@ func TestAPIValidator_WithErrors(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -117,7 +117,7 @@ func TestAPIValidator_WithWarnings(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -154,7 +154,7 @@ func TestAPIValidator_ProjectSpecific(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -183,7 +183,7 @@ func TestAPIValidator_ProjectByPath(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -203,7 +203,7 @@ func TestAPIValidator_HTTPError(t *testing.T) {
 		response := map[string]string{
 			"message": "401 Unauthorized",
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -237,7 +237,7 @@ func TestAPIValidator_Timeout(t *testing.T) {
 			Errors:   []gitlab.APIError{},
 			Warnings: []string{},
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -260,7 +260,7 @@ func TestAPIValidator_InvalidJSONResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Send invalid JSON
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("invalid json"))
+		_, _ = w.Write([]byte("invalid json"))
 	}))
 	defer server.Close()
 
@@ -310,7 +310,7 @@ func TestAPIValidator_EmptyContent(t *testing.T) {
 			Errors:   []gitlab.APIError{},
 			Warnings: []string{},
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -336,7 +336,7 @@ func TestAPIValidator_MultipleErrors(t *testing.T) {
 			Warnings: []string{},
 		}
 
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -361,7 +361,7 @@ func TestAPIValidator_Result_Stage(t *testing.T) {
 			Errors:   []gitlab.APIError{},
 			Warnings: []string{},
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -382,6 +382,7 @@ func TestNewAPIValidator(t *testing.T) {
 
 	if validator == nil {
 		t.Error("Expected validator to be created")
+		return
 	}
 
 	if validator.client != client {
@@ -408,7 +409,7 @@ func TestAPIValidator_WithContext(t *testing.T) {
 			Errors:   []gitlab.APIError{},
 			Warnings: []string{},
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -429,7 +430,7 @@ func TestAPIValidator_ServerError(t *testing.T) {
 		response := map[string]string{
 			"message": "Internal server error",
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 
@@ -453,7 +454,7 @@ func TestAPIValidator_RateLimitError(t *testing.T) {
 		response := map[string]string{
 			"message": "Rate limit exceeded",
 		}
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}))
 	defer server.Close()
 

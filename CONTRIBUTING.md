@@ -276,14 +276,12 @@ Include:
 
 ## Release Process
 
-Releases are automated using semantic-release:
+Releases are automated in one workflow on push to main:
 
 1. Merge PR to main
 2. CI runs tests
-3. semantic-release analyzes commits
-4. Version bumped automatically
-5. Release created on GitHub
-6. Binaries built and attached
+3. semantic-release analyzes commits, creates version and tag, updates CHANGELOG, creates GitHub release
+4. goreleaser (same run) builds binaries for all platforms and uploads them to that release
 
 ### Version Bumping
 

@@ -66,7 +66,7 @@ func DetectProjectFromGitRepo(dir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read git config: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Parse git config to find remote.origin.url
 	scanner := bufio.NewScanner(file)

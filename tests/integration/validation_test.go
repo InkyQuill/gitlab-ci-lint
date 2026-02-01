@@ -590,7 +590,7 @@ test:
 `
 
 	tempFile := createTempFile(&testing.T{}, validYAML)
-	defer os.Remove(tempFile)
+	defer func() { _ = os.Remove(tempFile) }()
 
 	b.ResetTimer()
 
@@ -622,7 +622,7 @@ test:
 
 	// Change to temp directory
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
@@ -665,7 +665,7 @@ test:
 
 	// Change to nested subdirectory
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 	if err := os.Chdir(subDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
@@ -836,7 +836,7 @@ func TestFileDiscovery_NoFilesFound(t *testing.T) {
 	tempDir := t.TempDir()
 
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
@@ -978,8 +978,12 @@ func TestFileDiscovery_ExitCodes(t *testing.T) {
 				// Create subdirectories with CI files
 				subdir1 := filepath.Join(tempDir, "service1")
 				subdir2 := filepath.Join(tempDir, "service2")
-				os.MkdirAll(subdir1, 0755)
-				os.MkdirAll(subdir2, 0755)
+				if err := os.MkdirAll(subdir1, 0755); err != nil {
+					t.Fatalf("MkdirAll: %v", err)
+				}
+				if err := os.MkdirAll(subdir2, 0755); err != nil {
+					t.Fatalf("MkdirAll: %v", err)
+				}
 				file1 := filepath.Join(subdir1, ".gitlab-ci.yml")
 				file2 := filepath.Join(subdir2, ".gitlab-ci.yml")
 				content := `
@@ -990,8 +994,12 @@ test:
   stage: test
   script: echo "test"
 `
-				os.WriteFile(file1, []byte(content), 0644)
-				os.WriteFile(file2, []byte(content), 0644)
+				if err := os.WriteFile(file1, []byte(content), 0644); err != nil {
+					t.Fatalf("WriteFile: %v", err)
+				}
+				if err := os.WriteFile(file2, []byte(content), 0644); err != nil {
+					t.Fatalf("WriteFile: %v", err)
+				}
 				return tempDir
 			},
 			args:        []string{"-d"},
@@ -1004,22 +1012,30 @@ test:
 				tempDir := t.TempDir()
 				subdir1 := filepath.Join(tempDir, "service1")
 				subdir2 := filepath.Join(tempDir, "service2")
-				os.MkdirAll(subdir1, 0755)
-				os.MkdirAll(subdir2, 0755)
+				if err := os.MkdirAll(subdir1, 0755); err != nil {
+					t.Fatalf("MkdirAll: %v", err)
+				}
+				if err := os.MkdirAll(subdir2, 0755); err != nil {
+					t.Fatalf("MkdirAll: %v", err)
+				}
 				validFile := filepath.Join(subdir1, ".gitlab-ci.yml")
 				invalidFile := filepath.Join(subdir2, ".gitlab-ci.yml")
-				os.WriteFile(validFile, []byte(`
+				if err := os.WriteFile(validFile, []byte(`
 stages:
   - test
 test:
   stage: test
   script: echo "test"
-`), 0644)
-				os.WriteFile(invalidFile, []byte(`
+`), 0644); err != nil {
+					t.Fatalf("WriteFile: %v", err)
+				}
+				if err := os.WriteFile(invalidFile, []byte(`
 stages:
   - test
 invalid: [unclosed
-`), 0644)
+`), 0644); err != nil {
+					t.Fatalf("WriteFile: %v", err)
+				}
 				return tempDir
 			},
 			args:        []string{"-d"},
