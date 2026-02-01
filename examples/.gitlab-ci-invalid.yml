@@ -1,0 +1,12 @@
+# Invalid GitLab CI configuration example
+# This file contains YAML syntax errors for testing the linter
+
+stages:
+  - build
+  - test
+
+# Error: Tab character indentation (YAML syntax error)
+build:
+	stage: build
+  script:
+    - echo "Building..."

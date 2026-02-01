@@ -1,0 +1,10 @@
+# Invalid YAML syntax - tab character followed by spaces (mixed indentation)
+
+stages:
+  - build
+  - test
+
+build:
+	stage: build
+  	script:
+    	- echo "Mixed tabs and spaces"

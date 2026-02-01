@@ -1,0 +1,8 @@
+# Invalid GitLab CI structure
+
+# Missing stages definition
+
+build:
+  stage: build
+  script:
+    - echo "This job references a stage that doesn't exist"

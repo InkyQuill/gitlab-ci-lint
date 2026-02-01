@@ -1,0 +1,17 @@
+# Basic valid GitLab CI configuration
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - echo "Building..."
+  only:
+    - main
+
+test:
+  stage: test
+  script:
+    - echo "Testing..."

@@ -1,0 +1,24 @@
+# Example configuration file for GitLab CI Linter
+# Copy this to ~/.tool-configs/.gitlab-ci-lint/config.yaml
+
+# GitLab instance configuration
+gitlab:
+  instance: "https://gitlab.com"  # GitLab instance URL
+  timeout: 30s                     # API timeout (Go duration format)
+
+# Authentication
+auth:
+  token: ""                        # Personal access token (recommended: use GCL_TOKEN env var)
+  netrc: false                     # Use ~/.netrc for credentials
+
+# Validation behavior
+validation:
+  skip_api: false                  # Skip API validation (YAML syntax only)
+  strict: true                     # Use strict mode for YAML parsing
+  project: ""                      # Project ID for context (e.g., "123" or "group/project")
+
+# Output formatting
+output:
+  format: "text"                   # text, json, yaml
+  verbose: false                   # Verbose output
+  color: "auto"                    # auto, always, never

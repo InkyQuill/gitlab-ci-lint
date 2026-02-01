@@ -1,0 +1,65 @@
+# Complex valid GitLab CI configuration
+
+variables:
+  GLOBAL_VAR: value
+
+stages:
+  - build
+  - test
+  - deploy
+
+.default_tags: &default_tags
+  tags:
+    - docker
+
+before_script:
+  - echo "Before all jobs"
+
+build:
+  stage: build
+  image: docker:latest
+  <<: *default_tags
+  services:
+    - docker:dind
+  script:
+    - docker build -t myapp .
+  cache:
+    paths:
+      - .cache/
+  artifacts:
+    paths:
+      - build/
+
+test:unit:
+  stage: test
+  image: python:3.11
+  <<: *default_tags
+  script:
+    - pip install -r requirements.txt
+    - pytest tests/unit/
+  needs:
+    - build
+
+test:integration:
+  stage: test
+  image: python:3.11
+  <<: *default_tags
+  script:
+    - pip install -r requirements.txt
+    - pytest tests/integration/
+  needs:
+    - build
+
+deploy:prod:
+  stage: deploy
+  image: alpine:latest
+  <<: *default_tags
+  script:
+    - echo "Deploying to production"
+  environment:
+    name: production
+    url: https://myapp.example.com
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  allow_failure: true
