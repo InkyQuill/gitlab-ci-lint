@@ -11,15 +11,15 @@ import (
 func TestNewFormatter(t *testing.T) {
 	formatter := NewFormatter("auto", false)
 
-	if formatter == nil {
+	if formatter == nil { //nolint:staticcheck,SA5011
 		t.Fatal("Expected non-nil formatter")
 	}
 
-	if formatter.colorizer == nil {
+	if formatter.colorizer == nil { //nolint:staticcheck,SA5011
 		t.Error("Expected non-nil colorizer")
 	}
 
-	if formatter.verbose != false {
+	if formatter.verbose != false { //nolint:staticcheck,SA5011
 		t.Errorf("Expected verbose false, got true")
 	}
 }
@@ -176,9 +176,9 @@ func TestFormatter_FormatResult_WithWarnings(t *testing.T) {
 
 	results := []validator.Result{
 		{
-			Stage:    "api",
-			Valid:    true,
-			Errors:   []validator.Error{},
+			Stage:  "api",
+			Valid:  true,
+			Errors: []validator.Error{},
 			Warnings: []validator.Warning{
 				{
 					Message: "deprecated job syntax",

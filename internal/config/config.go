@@ -4,10 +4,10 @@ import "time"
 
 // Config represents the application configuration
 type Config struct {
-	GitLab      GitLabConfig      `yaml:"gitlab"`
-	Auth        AuthConfig        `yaml:"auth"`
-	Validation  ValidationConfig  `yaml:"validation"`
-	Output      OutputConfig      `yaml:"output"`
+	GitLab     GitLabConfig     `yaml:"gitlab"`
+	Auth       AuthConfig       `yaml:"auth"`
+	Validation ValidationConfig `yaml:"validation"`
+	Output     OutputConfig     `yaml:"output"`
 }
 
 // GitLabConfig contains GitLab instance settings
@@ -31,7 +31,7 @@ type ValidationConfig struct {
 
 // OutputConfig contains output formatting settings
 type OutputConfig struct {
-	Format string `yaml:"format"` // text, json, yaml
+	Format  string `yaml:"format"` // text, json, yaml
 	Verbose bool   `yaml:"verbose"`
-	Color   string `yaml:"color"`  // auto, always, never
+	Color   string `yaml:"color"` // auto, always, never
 }

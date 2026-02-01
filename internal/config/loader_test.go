@@ -80,15 +80,15 @@ func TestLoader_Load_FlagsOverrideDefaults(t *testing.T) {
 
 func TestLoader_Load_EnvVarsOverrideDefaults(t *testing.T) {
 	// Set environment variables
-	os.Setenv("GCL_INSTANCE", "https://env.gitlab.com")
-	os.Setenv("GCL_TOKEN", "env-token")
-	os.Setenv("GCL_OUTPUT_FORMAT", "yaml")
-	os.Setenv("GCL_VERBOSE", "true")
+	_ = os.Setenv("GCL_INSTANCE", "https://env.gitlab.com")
+	_ = os.Setenv("GCL_TOKEN", "env-token")
+	_ = os.Setenv("GCL_OUTPUT_FORMAT", "yaml")
+	_ = os.Setenv("GCL_VERBOSE", "true")
 	defer func() {
-		os.Unsetenv("GCL_INSTANCE")
-		os.Unsetenv("GCL_TOKEN")
-		os.Unsetenv("GCL_OUTPUT_FORMAT")
-		os.Unsetenv("GCL_VERBOSE")
+		_ = os.Unsetenv("GCL_INSTANCE")
+		_ = os.Unsetenv("GCL_TOKEN")
+		_ = os.Unsetenv("GCL_OUTPUT_FORMAT")
+		_ = os.Unsetenv("GCL_VERBOSE")
 	}()
 
 	loader := NewLoader(&ConfigFlags{})
@@ -116,11 +116,11 @@ func TestLoader_Load_EnvVarsOverrideDefaults(t *testing.T) {
 
 func TestLoader_Load_FlagsOverrideEnvVars(t *testing.T) {
 	// Set environment variables
-	os.Setenv("GCL_TOKEN", "env-token")
-	os.Setenv("GCL_INSTANCE", "https://env.gitlab.com")
+	_ = os.Setenv("GCL_TOKEN", "env-token")
+	_ = os.Setenv("GCL_INSTANCE", "https://env.gitlab.com")
 	defer func() {
-		os.Unsetenv("GCL_TOKEN")
-		os.Unsetenv("GCL_INSTANCE")
+		_ = os.Unsetenv("GCL_TOKEN")
+		_ = os.Unsetenv("GCL_INSTANCE")
 	}()
 
 	// Flags should override env vars
@@ -270,8 +270,8 @@ func TestLoader_GetConfigPath_EnvVarPriority(t *testing.T) {
 	tmpDir := t.TempDir()
 	envConfigPath := filepath.Join(tmpDir, "env-config.yaml")
 
-	os.Setenv("GCL_CONFIG", envConfigPath)
-	defer os.Unsetenv("GCL_CONFIG")
+	_ = os.Setenv("GCL_CONFIG", envConfigPath)
+	defer func() { _ = os.Unsetenv("GCL_CONFIG") }()
 
 	loader := NewLoader(&ConfigFlags{})
 	path := loader.getConfigPath()
@@ -299,8 +299,8 @@ func TestLoadEnvVars_BooleanParsing(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			os.Setenv("GCL_SKIP_API", tc.value)
-			defer os.Unsetenv("GCL_SKIP_API")
+			_ = os.Setenv("GCL_SKIP_API", tc.value)
+			defer func() { _ = os.Unsetenv("GCL_SKIP_API") }()
 
 			loader := NewLoader(&ConfigFlags{})
 			cfg := loader.loadEnvVars()
