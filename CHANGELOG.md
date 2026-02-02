@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.1...v1.0.2) (2026-02-02)
+
+
+### Bug Fixes
+
+* resolve setup command bugs with connection test timing ([d27d4f6](https://github.com/InkyQuill/gitlab-ci-lint/commit/d27d4f649ee518dceb7ff2e73330afc70fe90f61))
+
 ## [1.0.1](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.0...v1.0.1) (2026-02-01)
 
 
