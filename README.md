@@ -6,106 +6,85 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/InkyQuill/gitlab-ci-lint)](https://goreportcard.com/report/github.com/InkyQuill/gitlab-ci-lint)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A fast, flexible GitLab CI/CD configuration linter that validates `.gitlab-ci.yml` files.
+A fast GitLab CI/CD configuration linter for `.gitlab-ci.yml` files. Two-stage validation: local YAML parsing and optional GitLab API validation.
+
+**This project is developed with AI assistance** (Claude, Z.ai).
 
 ## Features
 
-- ⚡ **Fast local validation** - YAML syntax checking without API calls
-- 🔌 **Optional API validation** - Complete semantic validation with GitLab instance
-- 🔍 **Smart file discovery** - Auto-discover CI files, batch validation, directory scanning
-- 🎨 **Multiple output formats** - Text, JSON, YAML
-- 🔧 **Flexible configuration** - File, environment variables, CLI flags
-- 🎯 **Single binary** - No dependencies, written in Go
-- 🌍 **Cross-platform** - Linux, macOS, Windows
-- 🚀 **Interactive setup** - Easy configuration wizard
+- **Local validation** — YAML syntax checking without API calls
+- **Optional API validation** — Full semantic validation against a GitLab instance
+- **Smart file discovery** — Auto-discover `.gitlab-ci.yml` in current and parent directories, recursive directory scanning
+- **Multiple output formats** — Text, JSON, YAML
+- **Flexible configuration** — Config file, environment variables, CLI flags
+- **Single binary** — No external dependencies (Go)
+- **Cross-platform** — Linux, macOS, Windows
+- **Interactive setup** — `setup` wizard to save instances and tokens
 
 ## Quick Start
 
 ### 1. Install
 
+**Linux / macOS (install script):**
+
 ```bash
-# Option 1: Quick install (Linux/macOS)
 curl -sSL https://github.com/InkyQuill/gitlab-ci-lint/raw/main/install.sh | bash
-
-# Option 2: Manual install
-VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | grep -E '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
-OS=$(uname | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
-case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
-
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | \
-    tar xz -O gitlab-ci-lint > gitlab-ci-lint
-chmod +x gitlab-ci-lint
-mkdir -p ~/.local/bin
-mv gitlab-ci-lint ~/.local/bin/
-
-# Add ~/.local/bin to PATH if needed
-[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
-export PATH=$HOME/.local/bin:$PATH
 ```
 
-### 2. Configure
+The script installs the binary to `~/.local/bin`. If that directory is not in your `PATH`, add `export PATH=$HOME/.local/bin:$PATH` to your shell profile and run `source ~/.bashrc` (or `~/.zshrc`).
+
+**With Go installed:**
 
 ```bash
-# Run interactive setup
+go install github.com/InkyQuill/gitlab-ci-lint/cmd/gitlab-ci-lint@latest
+```
+
+The binary will be in `$(go env GOPATH)/bin` (typically `~/go/bin`). Ensure that directory is in your `PATH`.
+
+### 2. Configure (optional)
+
+For API validation you need a GitLab instance URL and a personal access token. Run the setup wizard:
+
+```bash
 gitlab-ci-lint setup
 ```
 
-The wizard will help you configure:
-- GitLab instance URL (e.g., `https://gitlab.com` or self-hosted)
-- Personal access token for API validation
-- Default project (optional)
-- Output preferences
+Settings are saved to `~/.tools-config/.gitlab-ci-lint/config.yaml`. Without configuration, only local YAML validation is available (use `--skip-api` or run without a token).
 
 ### 3. Validate
 
 ```bash
-# Local validation only (no API required)
+# Local validation only (no API)
 gitlab-ci-lint --skip-api .gitlab-ci.yml
 
-# Full validation with GitLab API
-export GCL_TOKEN=glpat-your-token
-gitlab-ci-lint .gitlab-ci.yml
-
-# Project-specific validation (validates job references)
-gitlab-ci-lint --project group/project .gitlab-ci.yml
-
-# Auto-discovery (searches current and parent directories)
+# Auto-discover file in current and parent directories
 gitlab-ci-lint
+
+# Full validation via API (requires instance + token from setup or env)
+gitlab-ci-lint .gitlab-ci.yml
 ```
 
-## Installation
+## Installation (detailed)
 
-### Quick Install (Recommended)
+### Install script (Linux / macOS)
 
-Use our install script for automatic setup:
+Recommended: downloads the latest release for your platform and installs to `~/.local/bin`.
 
 ```bash
 curl -sSL https://github.com/InkyQuill/gitlab-ci-lint/raw/main/install.sh | bash
 ```
 
-The script will:
-- Download the latest release for your platform
-- Extract only the binary (no extra files left behind)
-- Install to `~/.local/bin` (XDG compliant, no sudo required)
-- Add to PATH if needed
+### Manual install (Linux / macOS)
 
-### Manual Install
-
-#### Linux / macOS
+Run from any writable directory (e.g. `~/Downloads` or `/tmp`).
 
 ```bash
-# Detect platform and download latest version
 VERSION=$(curl -s https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest | grep -E '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-case "$ARCH" in x86_64) ARCH="amd64";; aarch64|arm64) ARCH="arm64";; i386|i686) ARCH="386";; esac
+case "$ARCH" in x86_64) ARCH=amd64;; aarch64|arm64) ARCH=arm64;; i386|i686) ARCH=386;; *) echo "Unsupported: $ARCH"; exit 1;; esac
 
-# Download and extract ONLY the binary (tar xz -O extracts to stdout)
-curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | \
-    tar xz -O gitlab-ci-lint > gitlab-ci-lint
-
-# Make executable and install
+curl -sL "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v${VERSION}/gitlab-ci-lint_${VERSION}_${OS}_${ARCH}.tar.gz" | tar xz -O gitlab-ci-lint > gitlab-ci-lint
 chmod +x gitlab-ci-lint
 mkdir -p ~/.local/bin
 mv gitlab-ci-lint ~/.local/bin/
@@ -113,161 +92,79 @@ mv gitlab-ci-lint ~/.local/bin/
 # Add to PATH if needed
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
 export PATH=$HOME/.local/bin:$PATH
-
-# Verify
-gitlab-ci-lint version
 ```
 
-#### Windows (PowerShell)
+### Windows (PowerShell)
 
 ```powershell
-# Get latest version
 $version = (Invoke-RestMethod -Uri "https://api.github.com/repos/InkyQuill/gitlab-ci-lint/releases/latest").tag_name -replace '^v', ''
-
-# Download zip and extract
 $zip = "gitlab-ci-lint_${version}_windows_amd64.zip"
 Invoke-WebRequest -Uri "https://github.com/InkyQuill/gitlab-ci-lint/releases/download/v$version/$zip" -OutFile $zip -UseBasicParsing
 Expand-Archive -Path $zip -DestinationPath . -Force
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\bin" | Out-Null
 Move-Item -Path "gitlab-ci-lint.exe" -Destination "$env:USERPROFILE\bin\" -Force
 Remove-Item $zip
 
-# Add to PATH if needed
 $binPath = "$env:USERPROFILE\bin"
 $path = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($path -notlike "*$binPath*") {
   [Environment]::SetEnvironmentVariable("Path", "$path;$binPath", "User")
   $env:Path += ";$binPath"
 }
-gitlab-ci-lint version
 ```
 
-### Build from Source
+### Build from source
 
-If you have Go 1.24 or later installed:
+Requires Go 1.24+.
 
 ```bash
-# Clone the repository
 git clone https://github.com/InkyQuill/gitlab-ci-lint.git
 cd gitlab-ci-lint
 
-# Build for your current platform
-make build
-
-# Install to GOPATH/bin (or ~/.local/bin)
-make install
-
-# The binary will be available as:
-# - $(go env GOPATH)/bin/gitlab-ci-lint
-# - or: ./build/gitlab-ci-lint
+make build    # binary: ./build/gitlab-ci-lint
+make install  # install to $(go env GOPATH)/bin
 ```
 
-#### Build for Specific Platform
-
-```bash
-# Linux AMD64
-GOOS=linux GOARCH=amd64 go build -o gitlab-ci-lint cmd/gitlab-ci-lint/main.go
-
-# macOS ARM64 (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -o gitlab-ci-lint cmd/gitlab-ci-lint/main.go
-
-# Windows AMD64
-GOOS=windows GOARCH=amd64 go build -o gitlab-ci-lint.exe cmd/gitlab-ci-lint/main.go
-```
-
-### Go Install
-
-If you have Go installed:
+### Go install
 
 ```bash
 go install github.com/InkyQuill/gitlab-ci-lint/cmd/gitlab-ci-lint@latest
-
-# The binary will be installed to $(go env GOPATH)/bin (usually ~/go/bin/)
-# Make sure $GOPATH/bin is in your PATH
+# Binary at $(go env GOPATH)/bin/gitlab-ci-lint
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
 ## Configuration
 
-### Quick Setup (Recommended)
+Priority (low to high): defaults → config file → `GCL_*` environment variables → CLI flags.
 
-The interactive setup wizard will guide you through configuration:
+### Config file
 
-```bash
-gitlab-ci-lint setup
-```
+Default path: `~/.tools-config/.gitlab-ci-lint/config.yaml`. Created by `gitlab-ci-lint setup`.
 
-The wizard will help you configure:
-- GitLab instance URL (e.g., `https://gitlab.com` or your self-hosted instance)
-- Personal access token for API validation
-- Default project (optional)
-- Output preferences
-
-Configuration is saved to `~/.tools-config/.gitlab-ci-lint/config.yaml`
-
-### Environment Variables
-
-You can configure gitlab-ci-lint using environment variables (prefix `GCL_`):
-
-```bash
-# GitLab instance URL
-export GCL_INSTANCE=https://gitlab.example.com
-
-# Personal access token (requires 'api' scope)
-export GCL_TOKEN=glpat-xxxxxxxxxxxxxxx
-
-# Default project (for project-specific validation)
-export GCL_PROJECT=mygroup/myproject
-
-# Output format
-export GCL_OUTPUT=json
-
-# Skip API validation (local YAML syntax only)
-export GCL_SKIP_API=true
-
-# Verbose output
-export GCL_VERBOSE=true
-
-# Disable colored output
-export GCL_COLOR=never
-```
-
-Add these to your `~/.bashrc`, `~/.zshrc`, or shell profile to make them persistent.
-
-### Configuration File
-
-Configuration is loaded from multiple sources (low to high priority):
-
-1. **Defaults** - Built-in sensible defaults
-2. **Config file** - `~/.tools-config/.gitlab-ci-lint/config.yaml`
-3. **Environment variables** - Prefix `GCL_`
-4. **CLI flags** - Command-line arguments
-
-#### Config File Example
+Example (single instance and shared options):
 
 ```yaml
-# ~/.tools-config/.gitlab-ci-lint/config.yaml
 gitlab:
-  instance: "https://gitlab.com"  # Your GitLab instance URL
-  timeout: 30s                    # API request timeout
+  instance: "https://gitlab.com"
+  timeout: 30s
 
 auth:
-  token: "glpat-xxxxxxxxxxxx"     # Or use GCL_TOKEN environment variable
-  netrc: false                    # Use .netrc for credentials
+  token: ""           # prefer GCL_TOKEN env var
+  netrc: false
 
 validation:
-  skip_api: false                 # Skip API validation (local only)
-  strict: true                    # Use strict YAML parsing
-  project: "group/project"        # Default project ID or path
+  skip_api: false
+  strict: true
 
 output:
-  format: "text"                  # Output format: text|json|yaml
-  verbose: false                  # Verbose output
-  color: "auto"                   # Color output: auto|always|never
+  format: "text"       # text | json | yaml
+  verbose: false
+  color: "auto"       # auto | always | never
 
 files:
-  max_depth: 5                    # Max depth for directory scanning
-  search_parent: true             # Search parent directories
-  ignore_patterns:                # Patterns to ignore during discovery
+  search_parent: true
+  max_depth: 10
+  ignore_patterns:
     - ".git"
     - "node_modules"
     - "vendor"
@@ -276,212 +173,116 @@ files:
     - "*.tar.gz"
 ```
 
-### Getting Your GitLab Token
+Project for project-specific validation is set only via `GCL_PROJECT` or `--project`, not stored in the config file.
 
-For API validation, you need a GitLab personal access token:
+### Environment variables
 
-1. Go to your GitLab instance
-2. Navigate to **User Settings** → **Access Tokens**
-3. Create a new token with `api` scope
-4. Use the token via:
-   - Environment variable: `export GCL_TOKEN=glpat-xxxxx`
-   - Setup wizard: `gitlab-ci-lint setup`
-   - Config file: Add `auth.token` field
-   - CLI flag: `gitlab-ci-lint --token glpat-xxxxx`
+| Variable | Description |
+|----------|-------------|
+| `GCL_INSTANCE` | GitLab instance URL |
+| `GCL_TOKEN` | Personal access token (scope `api`) |
+| `GCL_PROJECT` | Project for API validation (ID or path) |
+| `GCL_OUTPUT_FORMAT` | Output format: text, json, yaml |
+| `GCL_SKIP_API` | true = local validation only |
+| `GCL_VERBOSE` | true = verbose output |
+| `GCL_COLOR` | auto, always, never |
+| `GCL_DEBUG` | true = debug output |
+| `GCL_CONFIG` | Path to config file |
 
-## Documentation
+### GitLab token
 
-- 📚 [Wiki](https://github.com/InkyQuill/gitlab-ci-lint/wiki) - Full documentation
-- 🚀 [Quick Start](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Quick-Start) - Get started in minutes
-- 🔧 [Configuration Guide](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Configuration-Guide) - Detailed configuration options
-- 🏗️ [Architecture Overview](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Architecture-Overview) - System design
-- 📖 [Basic Usage](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Basic-Usage) - Usage examples
-- 🐛 [Troubleshooting](https://github.com/InkyQuill/gitlab-ci-lint/wiki/Troubleshooting) - Common issues and solutions
-- 🔌 [CI/CD Integration](https://github.com/InkyQuill/gitlab-ci-lint/wiki/CI-CD-Integration) - Integration examples
-- 💻 [API Reference](https://github.com/InkyQuill/gitlab-ci-lint/wiki/API-Reference) - Developer documentation
-- 🤝 [Contributing](CONTRIBUTING.md) - Contribution guidelines
+For API validation you need a personal access token with `api` scope:
+
+1. GitLab → User Settings → Access Tokens
+2. Create a token with `api` scope
+3. Provide via: `GCL_TOKEN`, `gitlab-ci-lint setup`, config `auth.token`, or `--token`
 
 ## Usage
 
 ```bash
 gitlab-ci-lint [flags] [file]
-
-Available Commands:
-  setup       Interactive configuration wizard
-  version     Show version information
-  help        Help about any command
-
-Flags:
-  -c, --config string       Path to config file
-  -t, --token string        GitLab personal access token
-      --instance string     GitLab instance URL (default: https://gitlab.com)
-      --project string      Project ID (e.g., "123" or "group/project")
-  -s, --skip-api            Skip API validation (local only)
-  -o, --output string       Output format: text|json|yaml (default: text)
-  -v, --verbose             Verbose output
-      --color string        Color output: auto|always|never
-  -f, --file strings        Path(s) to CI file(s). Can be specified multiple times.
-  -d, --directory strings   Directory path(s) to recursively search for CI files.
 ```
 
-## Examples
+**Commands:** `setup` (interactive config), `version`, `help`.
+
+**Main flags:**
+
+- `-c, --config` — config file path
+- `-t, --token` — GitLab token
+- `--netrc` — use `~/.netrc`
+- `--instance` — GitLab URL (default https://gitlab.com)
+- `--project` — project for API validation (ID or group/project)
+- `-s, --skip-api` — local validation only
+- `-o, --output` — format: text | json | yaml
+- `-v, --verbose` — verbose output
+- `--color` — auto | always | never
+- `-f, --file` — path(s) to file(s), repeatable
+- `-d, --directory` — directory to scan recursively for CI files
+- `--list-instances` — list configured instances and exit
+
+**File discovery order** when no file argument is given: `-f` flags → `-d` flags → single positional argument → auto-discover in current and parent directories.
+
+### Examples
 
 ```bash
-# Auto-discovery (searches current and parent directories)
+# Auto-discover .gitlab-ci.yml in current and parent dirs
 gitlab-ci-lint
 
-# Validate multiple files
+# Multiple files
 gitlab-ci-lint -f .gitlab-ci.yml -f ci/frontend.yml
 
-# Recursively validate all CI files in a directory
+# Recursive directory scan
 gitlab-ci-lint -d ./monorepo
 
-# Combined: specific files and directory scanning
-gitlab-ci-lint -f .gitlab-ci.yml -d ./services
-
-# Quick syntax check during development
+# Syntax only
 gitlab-ci-lint --skip-api .gitlab-ci.yml
 
-# Full validation with custom instance
+# Custom instance
 gitlab-ci-lint --instance https://gitlab.example.com .gitlab-ci.yml
 
-# JSON output for CI/CD pipelines
+# JSON for pipelines
 gitlab-ci-lint --output json .gitlab-ci.yml | jq .valid
 
-# Project-specific validation with job references
+# Project-specific (extends, trigger, etc.)
 gitlab-ci-lint --project mygroup/myproject .gitlab-ci.yml
 
-# Validate from stdin
+# From stdin
 cat .gitlab-ci.yml | gitlab-ci-lint -
 ```
 
-## Exit Codes
+## Exit codes
 
-- `0` - All validations passed
-- `1` - Runtime error (file not found, auth failed, etc)
-- `10` - CI configuration is invalid
+- `0` — all validations passed
+- `1` — runtime error (file not found, network, auth)
+- `10` — CI configuration invalid
 
-Use in scripts:
+For batch validation, exit code is `10` if any file is invalid.
 
-```bash
-#!/bin/bash
-gitlab-ci-lint .gitlab-ci.yml
-case $? in
-  0) echo "✓ Valid" ;;
-  1) echo "✗ Error" ;;
-  10) echo "✗ Invalid configuration" ;;
-esac
-```
+## Documentation
 
-## Configuration
+- [Wiki](https://github.com/InkyQuill/gitlab-ci-lint/wiki)
+- [Contributing](CONTRIBUTING.md)
 
-Configuration is loaded from multiple sources (low to high priority):
-
-1. **Defaults** - Built-in sensible defaults
-2. **Config file** - `~/.tools-config/.gitlab-ci-lint/config.yaml`
-3. **Environment variables** - Prefix `GCL_`
-4. **CLI flags** - Command-line arguments
-
-### Config File Example
-
-```yaml
-# ~/.tools-config/.gitlab-ci-lint/config.yaml
-gitlab:
-  instance: "https://gitlab.com"
-  timeout: 30s
-
-auth:
-  token: "glpat-xxxxxxxxxxxx"  # Or use GCL_TOKEN
-
-validation:
-  skip_api: false
-  strict: true
-  project: "group/project"
-
-output:
-  format: "text"
-  verbose: false
-  color: "auto"
-```
-
-## Release Process
-
-Releases are automated using [semantic-release](https://github.com/semantic-release/semantic-release) and [goreleaser](https://github.com/goreleaser/goreleaser):
-
-1. **Create a commit** following [conventional commits](https://www.conventionalcommits.org/):
-   - `feat:` for new features (minor version bump)
-   - `fix:` for bug fixes (patch version bump)
-   - `feat!:` or `BREAKING CHANGE:` for breaking changes (major version bump)
-
-2. **Push to main**:
-   ```bash
-   git push origin feature-branch
-   # After PR merge to main
-   ```
-
-3. **Automatic release** (single workflow on push to main):
-   - semantic-release analyzes commits, creates version and tag (e.g. v1.2.3), updates CHANGELOG, creates GitHub release
-   - goreleaser runs in the same run, builds binaries for all platforms and uploads them to that release
-   - Version and binaries always match the same commit
-
-### Manual Release (Optional)
-
-To create a release without semantic-release (e.g. from a tag):
+## Development
 
 ```bash
-# Tag and push — triggers release.yml, goreleaser builds and uploads binaries
-git tag v1.2.3
-git push origin v1.2.3
-```
-
-For local snapshot (no publish): `make release-snapshot`
-
-### Building Release Locally
-
-To test the release process locally:
-
-```bash
-# Install goreleaser
-go install github.com/goreleaser/goreleaser/v2@latest
-
-# Build snapshot (no publish)
-make release-snapshot
-
-# Test configuration (no publish, skip dist)
-make release-test
-```
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development
-
-```bash
-# Run tests
-make test-unit
-
-# Run linters
+make build             # build to ./build/gitlab-ci-lint
+make test-unit         # unit tests
+make test-integration  # integration tests (requires built binary)
 make lint
-
-# Format code
 make fmt
-
-# Build
-make build
 ```
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
 
-## Project Status
+## Project status
 
-- [x] Two-stage validation system
-- [x] Interactive setup wizard
-- [x] Multi-format output
-- [x] Comprehensive tests (72%+ coverage)
-- [x] Semantic release automation
-- [x] CI/CD workflows
+- Two-stage validation (local + API)
+- Interactive setup and multi-instance config
+- Text/JSON/YAML output
+- Unit and integration tests
+- Semantic-release and goreleaser
 
-See [ROADMAP.md](ROADMAP.md) for future plans.
+Plans: [ROADMAP.md](ROADMAP.md).

@@ -151,8 +151,9 @@ func DetectInstanceType(instance string) (*InstanceInfo, error) {
 	return info, nil
 }
 
-// TestConnection performs a quick connectivity test to the GitLab instance
-func TestConnection(ctx context.Context, instance string) error {
+// TestConnection performs a quick connectivity test to the GitLab instance.
+// Accepts an optional token parameter for authentication on private instances.
+func TestConnection(ctx context.Context, instance string, token ...string) error {
 	instanceURL := gitlab.NormalizeInstanceURL(instance)
 
 	client := &http.Client{
@@ -170,13 +171,20 @@ func TestConnection(ctx context.Context, instance string) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
+	// Add token if provided
+	if len(token) > 0 && token[0] != "" {
+		req.Header.Set("PRIVATE-TOKEN", token[0])
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to connect: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	if resp.StatusCode != http.StatusOK {
+	// Accept 200 OK or 401 Unauthorized (both mean instance is reachable)
+	// 401 means instance exists but requires authentication
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusUnauthorized {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 

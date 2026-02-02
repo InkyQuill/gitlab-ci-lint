@@ -79,13 +79,13 @@ func TestSetupCommand_CreatesConfigFile(t *testing.T) {
 	configFile := filepath.Join(configDir, "config.yaml")
 
 	// Prepare input for interactive prompts
-	input := "https://gitlab.com\n" + // GitLab instance
-		"no\n" + // Use personal access token
-		"no\n" + // Set default project
-		"text\n" + // Output format
-		"no\n" + // Enable verbose
-		"yes\n" + // Save configuration
-		"no\n" // Test configuration
+	// Flow: Name → URL → Token? → Save and exit → Confirm save → Test config?
+	input := "gitlab\n" + // Instance name (NEW - required)
+		"https://gitlab.com\n" + // GitLab instance URL
+		"no\n" + // Use personal access token (asked BEFORE connection test now)
+		"yes\n" + // Save and exit (after adding instance)
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration now? (after save)
 
 	// Run setup command with environment variable for config path
 	cmd := exec.Command(mainBinary, "setup")
@@ -158,11 +158,13 @@ output:
 	}
 
 	// Input: Modify existing, change output format to json
+	// Flow: Modify → Continue to output → Format → Verbose → Confirm save → Test config?
 	input := "Modify existing configuration\n" +
+		"Continue to output configuration\n" + // Select this to skip instance management
 		"json\n" + // Change output format
 		"no\n" + // Verbose
-		"yes\n" + // Save
-		"no\n" // Test
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration
 
 	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
@@ -209,14 +211,14 @@ func TestSetupCommand_OverwriteExistingConfig(t *testing.T) {
 	}
 
 	// Input: Create new (overwrite), use new instance
+	// Flow: Overwrite → Name → URL → Token? → Save and exit → Confirm save → Test config?
 	input := "Create new configuration (overwrite)\n" +
-		"https://new.example.com\n" + // New instance
-		"no\n" + // Token
-		"no\n" + // Project
-		"text\n" + // Format
-		"no\n" + // Verbose
-		"yes\n" + // Save
-		"no\n" // Test
+		"newinstance\n" + // Instance name (NEW - required)
+		"https://new.example.com\n" + // New instance URL
+		"no\n" + // Token (asked BEFORE connection test now)
+		"yes\n" + // Save and exit (after adding instance)
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration now? (after save)
 
 	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
@@ -296,9 +298,11 @@ func TestSetupCommand_RejectSummary(t *testing.T) {
 	configFile := filepath.Join(configDir, "config.yaml")
 
 	// Input: Complete setup but reject at summary
-	input := "https://gitlab.com\n" +
-		"no\n" + // Token
-		"no\n" + // Project
+	// Flow: Name → URL → Token? → (skip test, no token) → Continue to output → Format → Verbose → Confirm save → Test config?
+	input := "myinstance\n" + // Instance name (NEW - required)
+		"https://gitlab.com\n" +
+		"no\n" + // Token (asked BEFORE connection test now)
+		"yes\n" + // Continue to output configuration
 		"text\n" + // Format
 		"no\n" + // Verbose
 		"no\n" // Don't save
@@ -341,10 +345,13 @@ func TestSetupCommand_ForceFlag(t *testing.T) {
 	}
 
 	// Input: No prompts needed with -f flag, just provide defaults
-	input := "text\n" + // Format
-		"no\n" + // Verbose
-		"yes\n" + // Save
-		"no\n" // Test
+	// With --force, we need: Name → URL → Token? → Save and exit → Confirm save → Test config?
+	input := "testinstance\n" + // Instance name (NEW - required)
+		"https://gitlab.com\n" + // URL
+		"no\n" + // Token (asked BEFORE connection test now)
+		"yes\n" + // Save and exit (after adding instance)
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration now? (after save)
 
 	cmd := exec.Command(mainBinary, "setup", "--force")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
@@ -385,14 +392,15 @@ func TestSetupCommand_OutputContainsSummary(t *testing.T) {
 	configDir := filepath.Join(tempDir, ".gitlab-ci-lint")
 
 	// Input: Complete setup
-	input := "https://custom.gitlab.com\n" +
-		"no\n" + // Token
-		"yes\n" + // Project
-		"my-group/my-project\n" + // Project path
+	// Flow: Name → URL → Token? → Continue to output → Format → Verbose → Confirm save → Test config?
+	input := "custom\n" + // Instance name (NEW - required)
+		"https://custom.gitlab.com\n" +
+		"no\n" + // Token (asked BEFORE connection test now)
+		"yes\n" + // Continue to output configuration
 		"yaml\n" + // Output format
 		"yes\n" + // Verbose
-		"yes\n" + // Save
-		"no\n" // Test
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration
 
 	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
@@ -414,10 +422,6 @@ func TestSetupCommand_OutputContainsSummary(t *testing.T) {
 		t.Error("Expected instance URL in summary")
 	}
 
-	if !strings.Contains(outputStr, "my-group/my-project") {
-		t.Error("Expected project in summary")
-	}
-
 	if !strings.Contains(outputStr, "Output Format: yaml") {
 		t.Error("Expected output format in summary")
 	}
@@ -436,13 +440,13 @@ func TestSetupCommand_CreatesDirectory(t *testing.T) {
 	_ = os.RemoveAll(filepath.Join(tempDir, "nested"))
 
 	// Input: Minimal setup
-	input := "https://gitlab.com\n" +
-		"no\n" + // Token
-		"no\n" + // Project
-		"text\n" + // Format
-		"no\n" + // Verbose
-		"yes\n" + // Save
-		"no\n" // Test
+	// Flow: Name → URL → Token? → Save and exit → Confirm save → Test config?
+	input := "test\n" + // Instance name (NEW - required)
+		"https://gitlab.com\n" +
+		"no\n" + // Token (asked BEFORE connection test now)
+		"yes\n" + // Save and exit (after adding instance)
+		"yes\n" + // Confirm save
+		"no\n" // Test configuration now? (after save)
 
 	cmd := exec.Command(mainBinary, "setup")
 	cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
@@ -484,13 +488,13 @@ func BenchmarkSetupCommand(b *testing.B) {
 		// Create unique config dir for each iteration
 		iterConfigDir := filepath.Join(configDir, "iter", string(rune(i)))
 
-		input := "https://gitlab.com\n" +
-			"no\n" + // Token
-			"no\n" + // Project
-			"text\n" + // Format
-			"no\n" + // Verbose
-			"yes\n" + // Save
-			"no\n" // Test
+		// Flow: Name → URL → Token? → Save and exit → Confirm save → Test config?
+		input := "bench\n" + // Instance name (NEW - required)
+			"https://gitlab.com\n" +
+			"no\n" + // Token (asked BEFORE connection test now)
+			"yes\n" + // Save and exit (after adding instance)
+			"yes\n" + // Confirm save
+			"no\n" // Test configuration now? (after save)
 
 		cmd := exec.Command(mainBinary, "setup")
 		cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+iterConfigDir)
@@ -517,13 +521,13 @@ func TestSetupCommand_Concurrent(t *testing.T) {
 			tempDir := t.TempDir()
 			configDir := filepath.Join(tempDir, ".gitlab-ci-lint", string(rune(iteration)))
 
-			input := "https://gitlab.com\n" +
-				"no\n" + // Token
-				"no\n" + // Project
-				"text\n" + // Format
-				"no\n" + // Verbose
-				"yes\n" + // Save
-				"no\n" // Test
+			// Flow: Name → URL → Token? → Save and exit → Confirm save → Test config?
+			input := "concurrent\n" + // Instance name (NEW - required)
+				"https://gitlab.com\n" +
+				"no\n" + // Token (asked BEFORE connection test now)
+				"yes\n" + // Save and exit (after adding instance)
+				"yes\n" + // Confirm save
+				"no\n" // Test configuration now? (after save)
 
 			cmd := exec.Command(mainBinary, "setup")
 			cmd.Env = append(os.Environ(), "GCL_CONFIG_DIR="+configDir)
