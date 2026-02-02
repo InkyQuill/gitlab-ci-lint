@@ -1,5 +1,17 @@
 # Changelog
 
+# [1.1.0](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.4...v1.1.0) (2026-02-02)
+
+
+### Bug Fixes
+
+* add timeout and panic recovery for update check in version command ([fd22477](https://github.com/InkyQuill/gitlab-ci-lint/commit/fd22477a744dde8fac4627f65a96f7fe66360392))
+
+
+### Features
+
+* add self-update functionality ([3359cd0](https://github.com/InkyQuill/gitlab-ci-lint/commit/3359cd093062d3251ccb2aff47dad77268c425da))
+
 ## [1.0.4](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.3...v1.0.4) (2026-02-02)
 
 
