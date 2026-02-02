@@ -4,20 +4,35 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/creativeprojects/go-selfupdate"
 	"github.com/InkyQuill/gitlab-ci-lint/pkg/version"
 )
 
 const (
-	repoSlug = "InkyQuill/gitlab-ci-lint"
+	repoSlug       = "InkyQuill/gitlab-ci-lint"
+	updateTimeout  = 5 * time.Second
 )
 
 // CheckForUpdates checks if a newer version is available on GitHub Releases
 // Returns (latestVersion, isAvailable, error)
+// This function is designed to be safe for non-interactive use (e.g., version command)
+// It will timeout and return errors gracefully instead of hanging or panicking
 func CheckForUpdates(ctx context.Context) (string, bool, error) {
+	// Add timeout to prevent hanging in CI or poor network conditions
+	timeoutCtx, cancel := context.WithTimeout(ctx, updateTimeout)
+	defer cancel()
+
+	// Recover from any panics in the library
+	defer func() {
+		if r := recover(); r != nil {
+			// Silently ignore panics - version command should never crash
+		}
+	}()
+
 	repo := selfupdate.ParseSlug(repoSlug)
-	latest, found, err := selfupdate.DetectLatest(ctx, repo)
+	latest, found, err := selfupdate.DetectLatest(timeoutCtx, repo)
 	if err != nil {
 		return "", false, fmt.Errorf("error checking for updates: %w", err)
 	}
