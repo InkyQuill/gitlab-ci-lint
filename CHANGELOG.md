@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.3...v1.0.4) (2026-02-02)
+
+
+### Bug Fixes
+
+* correct GitLab API response types to match official client library ([ba61afa](https://github.com/InkyQuill/gitlab-ci-lint/commit/ba61afadd3b627ae2480a34a30460c24eb29cba6))
+
 ## [1.0.3](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.2...v1.0.3) (2026-02-02)
 
 
