@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.2...v1.0.3) (2026-02-02)
+
+
+### Bug Fixes
+
+* prevent default instance from overriding auto-detected GitLab instance ([61fbc5e](https://github.com/InkyQuill/gitlab-ci-lint/commit/61fbc5e8111128e976ce5ff5a51817d57729a396))
+
 ## [1.0.2](https://github.com/InkyQuill/gitlab-ci-lint/compare/v1.0.1...v1.0.2) (2026-02-02)
 
 
