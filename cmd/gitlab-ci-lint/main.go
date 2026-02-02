@@ -505,21 +505,38 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 		instanceURL := detectedInstanceURL
 		projectPath := detectedProjectPath
 
-		// Step 3: Override with cfg.GitLab.Instance (from ENV GCL_INSTANCE or --instance flag)
-		if cfg.GitLab.Instance != "" {
-			instanceURL = cfg.GitLab.Instance
-			if formatter.GetDebugLogger() != nil {
+		// Log auto-detection result
+		if formatter.GetDebugLogger() != nil {
+			if err == nil && instanceURL != "" {
+				instanceName := getInstanceName(registry, instanceURL)
 				formatter.GetDebugLogger().Log("ROUTE",
-					fmt.Sprintf("file=%s instance overridden by config/flag: %s", filePath, instanceURL))
+					fmt.Sprintf("file=%s auto-detected: instance=%s (%s) project=%s",
+						filePath, instanceName, instanceURL, projectPath))
+			} else {
+				formatter.GetDebugLogger().Log("ROUTE",
+					fmt.Sprintf("file=%s auto-detection FAILED - no .git/config found or readable", filePath))
 			}
 		}
 
-		// Step 4: Override with cfg.Validation.Project (from ENV GCL_PROJECT or --project flag)
-		if cfg.Validation.Project != "" {
-			projectPath = cfg.Validation.Project
+		// Step 3: Override with FLAGS ONLY (not cfg - to avoid defaults)
+		// Check flags directly because cfg.GitLab.Instance may have default value
+		if flags.Instance != "" {
+			instanceURL = flags.Instance
 			if formatter.GetDebugLogger() != nil {
 				formatter.GetDebugLogger().Log("ROUTE",
-					fmt.Sprintf("file=%s project overridden by flag/env: %s", filePath, projectPath))
+					fmt.Sprintf("file=%s instance OVERRIDDEN by --instance flag: %s",
+						filePath, instanceURL))
+			}
+		}
+
+		// Step 4: Override with FLAGS ONLY (not cfg - to avoid defaults)
+		// Check flags directly because cfg.Validation.Project may have default value
+		if flags.Project != "" {
+			projectPath = flags.Project
+			if formatter.GetDebugLogger() != nil {
+				formatter.GetDebugLogger().Log("ROUTE",
+					fmt.Sprintf("file=%s project OVERRIDDEN by --project flag: %s",
+						filePath, projectPath))
 			}
 		}
 
