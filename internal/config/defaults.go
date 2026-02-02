@@ -8,7 +8,8 @@ func GetDefaults() Config {
 	return Config{
 		GitLab: GitLabConfig{
 			// Legacy single-instance defaults (for backward compatibility)
-			Instance: "https://gitlab.com",
+			// No default Instance - should only be set when explicitly configured via flag/ENV
+			Instance: "",
 			Timeout:  defaultTimeout,
 			// New multi-instance defaults (empty by default)
 			Instances: nil, // No instances configured by default

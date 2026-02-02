@@ -11,8 +11,9 @@ import (
 func TestGetDefaults(t *testing.T) {
 	defaults := GetDefaults()
 
-	if defaults.GitLab.Instance != "https://gitlab.com" {
-		t.Errorf("Expected default instance to be 'https://gitlab.com', got '%s'", defaults.GitLab.Instance)
+	// No default instance - should only be set when explicitly configured
+	if defaults.GitLab.Instance != "" {
+		t.Errorf("Expected default instance to be empty, got '%s'", defaults.GitLab.Instance)
 	}
 
 	if defaults.GitLab.Timeout == nil || defaults.GitLab.Timeout.Duration != 30*time.Second {
@@ -40,11 +41,11 @@ func TestLoader_Load_DefaultsOnly(t *testing.T) {
 		t.Fatalf("Failed to load defaults: %v", err)
 	}
 
-	// Note: This test may load from existing config file if it exists
+	// No default instance - should be empty unless loaded from config file
 	// The important thing is that it loads successfully
-	if cfg.GitLab.Instance == "" {
-		t.Errorf("Expected instance to be set (default or from config file)")
-	}
+	// Note: If a config file exists on the system, it may have an instance configured
+	// So we just verify it loads without error
+	_ = cfg // Use cfg to avoid unused variable error
 }
 
 func TestLoader_Load_FlagsOverrideDefaults(t *testing.T) {
