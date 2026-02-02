@@ -14,6 +14,7 @@ import (
 	"github.com/InkyQuill/gitlab-ci-lint/internal/gitlab"
 	"github.com/InkyQuill/gitlab-ci-lint/internal/output"
 	"github.com/InkyQuill/gitlab-ci-lint/internal/setup"
+	"github.com/InkyQuill/gitlab-ci-lint/internal/update"
 	"github.com/InkyQuill/gitlab-ci-lint/internal/validator"
 	"github.com/InkyQuill/gitlab-ci-lint/pkg/version"
 	"github.com/spf13/cobra"
@@ -64,14 +65,28 @@ File discovery (if no file specified):
 	rootCmd.Flags().BoolVar(&flagListInstances, "list-instances", false,
 		"List all configured GitLab instances and exit")
 
-	// Version flag
+	// Version command
 	versionCmd := &cobra.Command{
 		Use:   "version",
-		Short: "Show version information",
+		Short: "Show version information and check for updates",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("gitlab-ci-lint version %s\n", version.Version)
 			fmt.Printf("Commit: %s\n", version.Commit)
 			fmt.Printf("Build date: %s\n", version.BuildDate)
+			fmt.Println()
+
+			// Check for updates (silent, don't error on failure)
+			ctx := context.Background()
+			latest, available, err := update.CheckForUpdates(ctx)
+			if err != nil {
+				// Silently skip update check on error (network issues, etc.)
+				return
+			}
+
+			if available {
+				fmt.Printf("⚠️  New version available: %s\n", latest)
+				fmt.Println("Run 'gitlab-ci-lint upgrade' to update")
+			}
 		},
 	}
 
@@ -90,6 +105,30 @@ File discovery (if no file specified):
 		"Overwrite existing configuration without asking")
 
 	rootCmd.AddCommand(setupCmd)
+
+	// Upgrade command
+	var upgradeVerbose bool
+	upgradeCmd := &cobra.Command{
+		Use:   "upgrade",
+		Short: "Upgrade to the latest version",
+		Long:  "Download and install the latest version of gitlab-ci-lint from GitHub Releases",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := context.Background()
+
+			// Confirm current version before upgrading
+			fmt.Printf("Current version: %s\n", version.Version)
+			fmt.Println("Checking for updates...")
+
+			if err := update.Upgrade(ctx, upgradeVerbose); err != nil {
+				return fmt.Errorf("upgrade failed: %w", err)
+			}
+
+			return nil
+		},
+	}
+	upgradeCmd.Flags().BoolVarP(&upgradeVerbose, "verbose", "v", false, "Verbose output")
+
+	rootCmd.AddCommand(upgradeCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
