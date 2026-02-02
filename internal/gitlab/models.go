@@ -7,15 +7,11 @@ type LintRequest struct {
 	IncludeJobs bool   `json:"include_jobs,omitempty"`
 }
 
-// LintResponse represents the response from the GitLab CI lint API
+// LintResponse represents the response from the GitLab CI lint API (project-specific)
+// This matches gitlab.com/gitlab-org/api/client-go ProjectLintResult
 type LintResponse struct {
-	Valid      bool       `json:"valid"`
-	Errors     []APIError `json:"errors,omitempty"`
-	Warnings   []string   `json:"warnings,omitempty"`
-	MergedYaml string     `json:"merged_yaml,omitempty"`
-}
-
-// APIError represents an error from the GitLab API
-type APIError struct {
-	Message string `json:"message"`
+	Valid      bool     `json:"valid"`
+	Errors     []string `json:"errors,omitempty"`
+	Warnings   []string `json:"warnings,omitempty"`
+	MergedYaml string   `json:"merged_yaml,omitempty"`
 }

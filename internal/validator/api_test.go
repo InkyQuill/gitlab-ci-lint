@@ -32,7 +32,7 @@ func TestAPIValidator_Success(t *testing.T) {
 		// Send success response
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 
@@ -78,10 +78,8 @@ func TestAPIValidator_WithErrors(t *testing.T) {
 		// Send error response
 		response := gitlab.LintResponse{
 			Valid: false,
-			Errors: []gitlab.APIError{
-				{
-					Message: "jobs build config should be a hash or an array of hashes",
-				},
+			Errors: []string{
+				"jobs build config should be a hash or an array of hashes",
 			},
 			Warnings: []string{},
 		}
@@ -113,7 +111,7 @@ func TestAPIValidator_WithWarnings(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{"Job 'build' uses deprecated 'only' syntax"},
 		}
 
@@ -150,7 +148,7 @@ func TestAPIValidator_ProjectSpecific(t *testing.T) {
 
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 
@@ -181,7 +179,7 @@ func TestAPIValidator_ProjectByPath(t *testing.T) {
 
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 
@@ -237,7 +235,7 @@ func TestAPIValidator_Timeout(t *testing.T) {
 
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 		_ = json.NewEncoder(w).Encode(response)
@@ -310,7 +308,7 @@ func TestAPIValidator_EmptyContent(t *testing.T) {
 		// Send valid response even for empty content
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 		_ = json.NewEncoder(w).Encode(response)
@@ -331,10 +329,10 @@ func TestAPIValidator_MultipleErrors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := gitlab.LintResponse{
 			Valid: false,
-			Errors: []gitlab.APIError{
-				{Message: "jobs build config should be a hash"},
-				{Message: "jobs test config should be a hash"},
-				{Message: "stages config should be an array of strings"},
+			Errors: []string{
+				"jobs build config should be a hash",
+				"jobs test config should be a hash",
+				"stages config should be an array of strings",
 			},
 			Warnings: []string{},
 		}
@@ -361,7 +359,7 @@ func TestAPIValidator_Result_Stage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 		_ = json.NewEncoder(w).Encode(response)
@@ -409,7 +407,7 @@ func TestAPIValidator_WithContext(t *testing.T) {
 		// The client should use context.Background() internally
 		response := gitlab.LintResponse{
 			Valid:    true,
-			Errors:   []gitlab.APIError{},
+			Errors:   []string{},
 			Warnings: []string{},
 		}
 		_ = json.NewEncoder(w).Encode(response)

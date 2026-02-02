@@ -285,7 +285,7 @@ func TestClient_Lint_WithErrors(t *testing.T) {
 		_, _ = w.Write([]byte(`{
 			"valid": false,
 			"errors": [
-				{"message": "jobs config should contain at least one visible job"}
+				"jobs config should contain at least one visible job"
 			],
 			"warnings": []
 		}`))
@@ -310,8 +310,8 @@ func TestClient_Lint_WithErrors(t *testing.T) {
 	}
 
 	expectedError := "jobs config should contain at least one visible job"
-	if resp.Errors[0].Message != expectedError {
-		t.Errorf("Expected error message '%s', got '%s'", expectedError, resp.Errors[0].Message)
+	if resp.Errors[0] != expectedError {
+		t.Errorf("Expected error message '%s', got '%s'", expectedError, resp.Errors[0])
 	}
 }
 

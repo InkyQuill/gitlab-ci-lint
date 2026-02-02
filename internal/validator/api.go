@@ -53,9 +53,9 @@ func (v *APIValidator) Validate(content []byte) Result {
 	result.Valid = resp.Valid
 
 	// Convert API errors to validator errors
-	for _, apiErr := range resp.Errors {
+	for _, errMsg := range resp.Errors {
 		result.Errors = append(result.Errors, Error{
-			Message: apiErr.Message,
+			Message: errMsg,
 		})
 	}
 
