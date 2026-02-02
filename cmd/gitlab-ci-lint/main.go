@@ -80,10 +80,12 @@ File discovery (if no file specified):
 
 	// Setup command
 	setupCmd := &cobra.Command{
-		Use:   "setup",
-		Short: "Interactive setup wizard",
-		Long:  "Interactive configuration wizard for gitlab-ci-lint",
-		RunE:  runSetup,
+		Use:                "setup",
+		Short:              "Interactive setup wizard",
+		Long:               "Interactive configuration wizard for gitlab-ci-lint",
+		RunE:               runSetup,
+		SilenceErrors:      true, // We handle errors ourselves
+		SilenceUsage:       true, // Don't show usage on errors
 	}
 	setupCmd.Flags().BoolVarP(&setupForce, "force", "f", false,
 		"Overwrite existing configuration without asking")
@@ -820,9 +822,9 @@ func displayInstances(instances []config.InstanceConfig) {
 
 // addInstance adds a new GitLab instance
 func addInstance(ctx context.Context, cfg *config.Config) error {
-	var name, url, token string
+	var name, url string
 
-	// Name
+	// 1. Name input
 	namePrompt := &survey.Input{
 		Message: "Instance name (e.g., gitlab.com, work):",
 		Help:    "A unique identifier for this instance",
@@ -838,7 +840,7 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	// URL
+	// 2. URL input
 	urlPrompt := &survey.Input{
 		Message: "Instance URL:",
 		Default: "https://gitlab.com",
@@ -848,14 +850,7 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 	}
 	url = gitlab.NormalizeInstanceURL(url)
 
-	// Test connection
-	fmt.Print("Testing connection...")
-	if err := setup.TestConnection(ctx, url); err != nil {
-		return fmt.Errorf("connection failed: %w", err)
-	}
-	fmt.Println(" ✓")
-
-	// Token (optional)
+	// 3. Ask for token FIRST (moved from after connection test)
 	var useToken bool
 	tokenPrompt := &survey.Confirm{
 		Message: "Configure authentication token?",
@@ -864,6 +859,9 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 	if err := survey.AskOne(tokenPrompt, &useToken); err != nil {
 		return err
 	}
+
+	var validatedToken string
+	var authenticatedUser string
 
 	if useToken {
 		maxRetries := 3
@@ -881,7 +879,7 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 				break
 			}
 
-			// Validate token
+			// Validate token AGAINST /api/v4/user (requires auth)
 			fmt.Print("Validating token...")
 			result, err := setup.ValidateToken(url, tokenInput)
 			if err != nil {
@@ -890,7 +888,8 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 
 			if result.Valid {
 				fmt.Printf("\n  ✓ Token valid! Authenticated as: %s\n", result.Username)
-				token = tokenInput
+				validatedToken = tokenInput
+				authenticatedUser = result.Username
 				break
 			} else {
 				fmt.Printf("\n  ✗ Token validation failed: %s\n", result.Error)
@@ -912,15 +911,47 @@ func addInstance(ctx context.Context, cfg *config.Config) error {
 		}
 	}
 
-	// Add instance
+	// 4. Test connection WITH token if available
+	// Skip test if no token (per user preference)
+	if validatedToken != "" {
+		fmt.Print("Testing connection...")
+		if err := setup.TestConnection(ctx, url, validatedToken); err != nil {
+			fmt.Printf("\n  ✗ Connection test failed: %v\n", err)
+			fmt.Println("  Note: This may be a temporary network issue.")
+
+			// Allow saving anyway
+			var proceed bool
+			proceedPrompt := &survey.Confirm{
+				Message: "Save this instance anyway?",
+				Default: false,
+			}
+			if err := survey.AskOne(proceedPrompt, &proceed); err != nil {
+				return err
+			}
+			if !proceed {
+				return fmt.Errorf("setup cancelled by user")
+			}
+		} else {
+			fmt.Println(" ✓")
+		}
+	}
+	// If no token: skip connection test
+
+	// 5. Add instance
 	instance := config.InstanceConfig{
 		Name:  name,
 		URL:   url,
-		Token: token,
+		Token: validatedToken,
 	}
 	cfg.GitLab.Instances = append(cfg.GitLab.Instances, instance)
 
-	fmt.Printf("\n✓ Instance '%s' added successfully\n", name)
+	// 6. Success message
+	if authenticatedUser != "" {
+		fmt.Printf("\n✓ Instance '%s' added successfully (authenticated as %s)\n", name, authenticatedUser)
+	} else {
+		fmt.Printf("\n✓ Instance '%s' added successfully\n", name)
+	}
+
 	return nil
 }
 
@@ -1075,13 +1106,18 @@ func testAllInstances(ctx context.Context, cfg *config.Config) error {
 	for _, inst := range cfg.GitLab.Instances {
 		fmt.Printf("\n  Testing '%s' (%s)...\n", inst.Name, inst.URL)
 
-		// Test connection
-		if err := setup.TestConnection(ctx, inst.URL); err != nil {
-			fmt.Printf("    ✗ Connection failed: %v\n", err)
-			allPassed = false
-			continue
+		// Test connection WITH token if available
+		if inst.Token != "" {
+			if err := setup.TestConnection(ctx, inst.URL, inst.Token); err != nil {
+				fmt.Printf("    ✗ Connection failed: %v\n", err)
+				allPassed = false
+				continue
+			}
+			fmt.Println("    ✓ Connection successful (authenticated)")
+		} else {
+			// No token - skip test
+			fmt.Println("    ⚠ No token configured - skipping connection test")
 		}
-		fmt.Println("    ✓ Connection successful")
 
 		// Test token if configured
 		if inst.Token != "" {
@@ -1099,8 +1135,6 @@ func testAllInstances(ctx context.Context, cfg *config.Config) error {
 			}
 
 			fmt.Printf("    ✓ Token valid (authenticated as: %s)\n", result.Username)
-		} else {
-			fmt.Println("    ⚠ No token configured")
 		}
 	}
 
