@@ -72,11 +72,9 @@ func (f *Formatter) formatText(w io.Writer, results []validator.Result, filename
 		}
 	}
 
-	// Print header
-	_, _ = fmt.Fprintf(w, "\n  %s\n\n", f.colorizer.Blue("GitLab CI Lint Results"))
-
-	// Print filename
-	_, _ = fmt.Fprintf(w, "  File: %s\n\n", f.colorizer.Gray(filename))
+	// Print header and filename
+	_, _ = fmt.Fprintf(w, "\n  %s\n", f.colorizer.Blue("GitLab CI Lint Results"))
+	_, _ = fmt.Fprintf(w, "  File: %s\n", filename)
 
 	// Print results for each stage
 	for _, result := range results {
@@ -86,10 +84,11 @@ func (f *Formatter) formatText(w io.Writer, results []validator.Result, filename
 	// Print overall status
 	_, _ = fmt.Fprintf(w, "  ")
 	if allValid {
-		_, _ = fmt.Fprintf(w, "%s\n\n", f.colorizer.Green("✓ All validations passed"))
+		_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Green("✓ All validations passed"))
 	} else {
-		_, _ = fmt.Fprintf(w, "%s\n\n", f.colorizer.Red("✗ Validation failed"))
+		_, _ = fmt.Fprintf(w, "%s", f.colorizer.Red("✗ Validation failed"))
 	}
+	_, _ = fmt.Fprintf(w, "\n")
 }
 
 // formatTextResult formats a single validation result as text
@@ -107,25 +106,16 @@ func (f *Formatter) formatTextResult(w io.Writer, result *validator.Result) {
 		_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Green("Valid"))
 	} else {
 		_, _ = fmt.Fprintf(w, "%s\n", f.colorizer.Red("Invalid"))
-	}
-
-	// Print errors
-	if len(result.Errors) > 0 {
-		_, _ = fmt.Fprintf(w, "\n")
+		// Print errors immediately after Invalid status
 		for _, err := range result.Errors {
 			f.formatError(w, &err)
 		}
 	}
 
 	// Print warnings
-	if len(result.Warnings) > 0 {
-		_, _ = fmt.Fprintf(w, "\n")
-		for _, warn := range result.Warnings {
-			f.formatWarning(w, &warn)
-		}
+	for _, warn := range result.Warnings {
+		f.formatWarning(w, &warn)
 	}
-
-	_, _ = fmt.Fprintf(w, "\n")
 }
 
 // formatError formats a validation error
@@ -241,10 +231,10 @@ func (f *Formatter) FormatSummary(w io.Writer, format string, results []validato
 func (f *Formatter) formatSummaryText(w io.Writer, results []validator.FileResult) {
 	total, valid, invalid := f.countValidationResults(results)
 
-	_, _ = fmt.Fprintf(w, "\n  %s\n\n", f.colorizer.Blue("Summary"))
+	_, _ = fmt.Fprintf(w, "\n  %s\n", f.colorizer.Blue("Summary"))
 	_, _ = fmt.Fprintf(w, "  Total files: %d\n", total)
 	_, _ = fmt.Fprintf(w, "  %s: %d\n", f.colorizer.Green("Valid"), valid)
-	_, _ = fmt.Fprintf(w, "  %s: %d\n\n", f.colorizer.Red("Invalid"), invalid)
+	_, _ = fmt.Fprintf(w, "  %s: %d\n", f.colorizer.Red("Invalid"), invalid)
 }
 
 // formatSummaryJSON formats summary as JSON

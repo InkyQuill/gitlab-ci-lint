@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -546,7 +545,7 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 				formatter.GetDebugLogger().Log("ROUTE",
 					fmt.Sprintf("file=%s no instance detected - skipping API validation", filePath))
 			}
-			formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filepath.Base(filePath))
+			formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filePath)
 			return result
 		}
 
@@ -559,7 +558,7 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 					fmt.Sprintf("file=%s no token for %s - skipping API validation",
 						filePath, instanceURL))
 			}
-			formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filepath.Base(filePath))
+			formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filePath)
 			return result
 		}
 
@@ -589,7 +588,7 @@ func validateFile(cmd *cobra.Command, filePath string, cfg *config.Config, forma
 	}
 
 	// Print results for this file
-	formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filepath.Base(filePath))
+	formatter.FormatResult(os.Stdout, cfg.Output.Format, result.Stages, filePath)
 
 	return result
 }
